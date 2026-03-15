@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<!-- ── Viewport fixo para TV: sem zoom, sem portrait ── -->
+<meta name="viewport" content="width=1920, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#06080f">
+<!-- WebView Android TV flags -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="HandheldFriendly" content="false">
+<title>Royal Streams — TV</title>
+
+<!-- ══════════════════════════════════════════════════════════
+     ROYAL STREAMS — ANDROID TV / TV BOX / SMART TV
+     Compatível com: WebView Android TV, Android Studio, 
+     Controle Remoto (D-Pad), Telas 1080p e 4K
+     Layout: Drawer lateral + Grade de cards estilo Netflix
+     Navegação: Setas do controle remoto + Enter
+══════════════════════════════════════════════════════════ -->
+
+<style>
+/* ══════════════════════════════════════════════════
+   RESET & TOKENS DE DESIGN
+══════════════════════════════════════════════════ */
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+}
+
+:root {
+  /* Paleta Gold — Royal Streams */
+  --gold: #c9a84c;
+  --gold-l: #e2c278;
+  --gold-d: #8a6b20;
+  --gold-glow: rgba(201,168,76,.18);
+
+  /* Fundos escuros */
+  --bg:  #06080f;
+  --bg1: #0b0d16;
+  --bg2: #10131e;
+  --bg3: #171a28;
+  --bg4: #1e2133;
+
+  /* Texto */
+  --txt:  #eeeae0;
+  --txt2: #9a96a0;
+  --txt3: #52505a;
+
+  /* Acentos */
+  --red:   #c94040;
+  --live:  #d43535;
+  --green: #2e9e63;
+  --blue:  #4a72c4;
+
+  /* Bordas */
+  --border:   rgba(255,255,255,.07);
+  --border-g: rgba(201,168,76,.22);
+
+  /* Raios de borda */
+  --r:    10px;
+  --r-lg: 16px;
+  --r-sm: 6px;
+
+  /* Sombras */
+  --sh:      0 4px 24px rgba(0,0,0,.55);
+  --sh-gold: 0 0 32px rgba(201,168,76,.18);
+
+  /* Layout TV */
+  --drawer-w:        240px;   /* largura do drawer expandido */
+  --drawer-w-col:    72px;    /* largura colapsado (ícones) */
+  --header-h:        70px;    /* altura do header */
+  --card-w:          220px;   /* largura padrão do card */
+  --card-h:          310px;   /* altura padrão do card */
+  --focus-ring:      0 0 0 3px var(--gold), 0 0 24px var(--gold-glow);
+  --transition:      .22s ease;
+}
+
+/* ── HTML & Body: sempre horizontal, sem scroll desnecessário ── */
+html {
+  height: 100%;
+  overflow: hidden; /* TV não rola a página, rola só conteúdo */
+}
+body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'Segoe UI', 'Arial', sans-serif; /* fallback seguro para WebView */
+  font-size: 18px; /* mínimo legível em TV */
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  /* Garante layout horizontal fixo */
+  min-width: 1280px;
+}
+
+/* ── Scrollbar invisível mas funcional ── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,.25); border-radius: 2px; }
+
+/* ══════════════════════════════════════════════════
+   FOCO UNIVERSAL — controle remoto
+   Todo elemento focável recebe destaque claro
+══════════════════════════════════════════════════ */
+:focus { outline: none; }
+
+.focusable:focus,
+.focusable.tv-focused,
+button:focus,
+a:focus,
+[tabindex]:focus {
+  outline: none;
+  box-shadow: var(--focus-ring) !important;
+  transform: scale(1.04);
+  z-index: 10;
+  position: relative;
+}
+
+/* ══════════════════════════════════════════════════
+   SPLASH SCREEN
+══════════════════════════════════════════════════ */
+#rs-splash {
+  position: fixed; inset: 0; z-index: 99999;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px;
+  transition: opacity .6s ease, visibility .6s ease;
+}
+#rs-splash.hide {
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+#rs-splash::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(201,168,76,.2) 0%, transparent 65%);
+}
+.splash-logo {
+  position: relative; z-index: 1;
+  width: 160px; height: 160px;
+  background: var(--gold-glow);
+  border-radius: 50%;
+  border: 2px solid var(--border-g);
+  display: flex; align-items: center; justify-content: center;
+  animation: splashPulse 2.2s ease-in-out infinite;
+  box-shadow: 0 0 80px rgba(201,168,76,.35);
+}
+.splash-logo svg { width: 80px; height: 80px; }
+@keyframes splashPulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 80px rgba(201,168,76,.35); }
+  50%      { transform: scale(.96); box-shadow: 0 0 120px rgba(201,168,76,.55); }
+}
+.splash-title {
+  position: relative; z-index: 1;
+  font-size: 42px; font-weight: 800;
+  letter-spacing: 6px; text-transform: uppercase;
+  color: var(--txt);
+}
+.splash-title span { color: var(--gold); }
+.splash-subtitle {
+  position: relative; z-index: 1;
+  font-size: 18px; color: var(--txt2); letter-spacing: 2px;
+}
+.splash-bar {
+  position: relative; z-index: 1;
+  width: 200px; height: 3px;
+  background: var(--bg3); border-radius: 4px; overflow: hidden;
+  margin-top: 10px;
+}
+.splash-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--gold-d), var(--gold-l));
+  border-radius: 4px;
+  animation: splashLoad 2s ease forwards;
+}
+@keyframes splashLoad { from { width: 0; } to { width: 100%; } }
+
+/* ══════════════════════════════════════════════════
+   HEADER / TOPBAR
+══════════════════════════════════════════════════ */
+#tv-header {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: linear-gradient(180deg, rgba(6,8,15,.98) 0%, rgba(6,8,15,.85) 100%);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 20px;
+  padding: 0 28px;
+  z-index: 500;
+  transition: var(--transition);
+}
+.header-brand {
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+.header-brand-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--gold-d), var(--gold));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--sh-gold);
+}
+.header-brand-icon svg { width: 24px; height: 24px; }
+.header-brand-name {
+  font-size: 22px; font-weight: 800;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--txt);
+}
+.header-brand-name span { color: var(--gold); }
+
+/* Barra de pesquisa no header */
+.header-search {
+  flex: 1; max-width: 460px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0 16px;
+  height: 44px;
+  transition: var(--transition);
+}
+.header-search:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold-glow);
+}
+.header-search svg { color: var(--txt3); flex-shrink: 0; }
+.header-search input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--txt); font-size: 18px;
+  font-family: inherit;
+}
+.header-search input::placeholder { color: var(--txt3); }
+
+/* Controles do header (direita) */
+.header-controls {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 14px;
+}
+.hc-btn {
+  width: 44px; height: 44px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--txt2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: var(--transition);
+  position: relative;
+}
+.hc-btn:hover, .hc-btn:focus, .hc-btn.tv-focused {
+  background: var(--bg4); border-color: var(--gold);
+  color: var(--gold); box-shadow: var(--focus-ring);
+}
+.hc-badge {
+  position: absolute; top: 6px; right: 6px;
+  width: 8px; height: 8px;
+  background: var(--red); border-radius: 50%;
+  border: 2px solid var(--bg2);
+}
+
+/* Avatar do perfil */
+.hc-avatar {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--gold-d), var(--gold));
+  border: 2px solid var(--border-g);
+  overflow: hidden; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #000;
+  transition: var(--transition);
+}
+.hc-avatar:focus, .hc-avatar.tv-focused {
+  box-shadow: var(--focus-ring);
+}
+
+/* ══════════════════════════════════════════════════
+   LAYOUT PRINCIPAL: DRAWER + CONTEÚDO
+══════════════════════════════════════════════════ */
+#tv-layout {
+  display: flex;
+  margin-top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════════════════════
+   DRAWER LATERAL — navegação principal
+   Colapsa/expande com animação suave
+══════════════════════════════════════════════════ */
+#tv-drawer {
+  width: var(--drawer-w-col); /* começa colapsado */
+  height: 100%;
+  background: linear-gradient(180deg, var(--bg1) 0%, var(--bg) 100%);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transition: width .3s cubic-bezier(.4,0,.2,1);
+  flex-shrink: 0;
+  z-index: 200;
+  position: relative;
+}
+
+/* Drawer expandido */
+#tv-drawer.expanded {
+  width: var(--drawer-w);
+  box-shadow: 4px 0 40px rgba(0,0,0,.5);
+}
+
+/* Botão toggle do drawer */
+.drawer-toggle {
+  width: 100%; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--txt2); cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.drawer-toggle:hover, .drawer-toggle:focus, .drawer-toggle.tv-focused {
+  background: var(--bg3); color: var(--gold);
+  box-shadow: var(--focus-ring);
+}
+.drawer-toggle svg {
+  transition: transform .3s ease;
+}
+#tv-drawer.expanded .drawer-toggle svg {
+  transform: rotate(180deg);
+}
+
+/* Itens de menu do drawer */
+.drawer-menu {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 8px 0;
+}
+.drawer-item {
+  display: flex; align-items: center;
+  height: 56px; padding: 0 20px;
+  gap: 16px; white-space: nowrap;
+  cursor: pointer; color: var(--txt2);
+  border: none; background: none;
+  width: 100%; text-align: left;
+  font-size: 18px; font-family: inherit;
+  border-radius: 0;
+  transition: var(--transition);
+  position: relative;
+  text-decoration: none;
+}
+.drawer-item:hover, .drawer-item:focus, .drawer-item.tv-focused {
+  background: var(--bg3); color: var(--txt);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.drawer-item.active {
+  background: var(--bg4);
+  color: var(--gold);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.drawer-item .di-icon {
+  width: 32px; height: 32px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.drawer-item .di-label {
+  opacity: 0;
+  transition: opacity .2s ease .05s;
+  overflow: hidden;
+}
+#tv-drawer.expanded .drawer-item .di-label {
+  opacity: 1;
+}
+.drawer-item .di-badge {
+  margin-left: auto;
+  background: var(--red); color: #fff;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 6px; border-radius: 6px;
+  opacity: 0; transition: opacity .2s ease .05s;
+}
+#tv-drawer.expanded .drawer-item .di-badge {
+  opacity: 1;
+}
+
+/* Separador do drawer */
+.drawer-sep {
+  height: 1px; background: var(--border);
+  margin: 8px 0;
+}
+
+/* Rodapé do drawer */
+.drawer-footer {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════
+   ÁREA DE CONTEÚDO PRINCIPAL
+══════════════════════════════════════════════════ */
+#tv-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+/* ── HERO BANNER ── */
+.tv-hero {
+  position: relative;
+  width: 100%; height: 480px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tv-hero-bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center top;
+  transition: opacity .8s ease;
+}
+.tv-hero-bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    90deg, rgba(6,8,15,.92) 0%, rgba(6,8,15,.6) 50%, transparent 80%
+  ),
+  linear-gradient(
+    0deg, rgba(6,8,15,.9) 0%, transparent 50%
+  );
+}
+.tv-hero-content {
+  position: relative; z-index: 2;
+  padding: 60px 48px;
+  max-width: 680px;
+  height: 100%;
+  display: flex; flex-direction: column;
+  justify-content: flex-end;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--gold); color: #000;
+  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  padding: 4px 12px; border-radius: 4px;
+  text-transform: uppercase; margin-bottom: 14px;
+  width: fit-content;
+}
+.hero-title {
+  font-size: 52px; font-weight: 800;
+  line-height: 1.1; color: var(--txt);
+  text-shadow: 0 2px 20px rgba(0,0,0,.5);
+  margin-bottom: 14px;
+}
+.hero-desc {
+  font-size: 19px; color: var(--txt2); line-height: 1.5;
+  margin-bottom: 28px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hero-meta {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 28px;
+  font-size: 16px; color: var(--txt2);
+}
+.hero-meta .meta-rating {
+  color: var(--gold); font-weight: 700;
+  display: flex; align-items: center; gap: 4px;
+}
+.hero-actions {
+  display: flex; align-items: center; gap: 14px;
+}
+.btn-play {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--txt); color: #000;
+  border: none; border-radius: 10px;
+  padding: 14px 28px; font-size: 19px; font-weight: 700;
+  cursor: pointer; transition: var(--transition);
+  font-family: inherit;
+}
+.btn-play:hover, .btn-play:focus, .btn-play.tv-focused {
+  background: var(--gold); transform: scale(1.04);
+  box-shadow: var(--focus-ring), 0 8px 30px rgba(201,168,76,.3);
+}
+.btn-info {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.18); color: var(--txt);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 10px; padding: 14px 22px;
+  font-size: 19px; font-weight: 600;
+  cursor: pointer; transition: var(--transition);
+  font-family: inherit;
+  backdrop-filter: blur(4px);
+}
+.btn-info:hover, .btn-info:focus, .btn-info.tv-focused {
+  background: rgba(255,255,255,.26); transform: scale(1.04);
+  box-shadow: var(--focus-ring);
+}
+
+/* Indicadores do hero (bolinhas) */
+.hero-dots {
+  position: absolute; bottom: 20px; right: 40px;
+  display: flex; gap: 8px; z-index: 3;
+}
+.hero-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,.3);
+  transition: var(--transition); cursor: pointer;
+}
+.hero-dot.active { background: var(--gold); width: 24px; border-radius: 4px; }
+
+/* ══════════════════════════════════════════════════
+   SEÇÕES DE CONTEÚDO (linhas de cards)
+══════════════════════════════════════════════════ */
+.tv-section {
+  padding: 24px 0 8px;
+}
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 40px; margin-bottom: 16px;
+}
+.section-title {
+  font-size: 22px; font-weight: 700; color: var(--txt);
+  flex: 1;
+}
+.section-see-all {
+  font-size: 16px; color: var(--gold);
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; padding: 6px 14px;
+  border-radius: 6px; transition: var(--transition);
+}
+.section-see-all:hover, .section-see-all:focus, .section-see-all.tv-focused {
+  background: var(--bg3); box-shadow: var(--focus-ring);
+}
+.section-badge {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  padding: 3px 8px; border-radius: 4px;
+  text-transform: uppercase;
+}
+.section-badge.new   { background: var(--green); color: #fff; }
+.section-badge.live  { background: var(--live);  color: #fff; animation: livePulse 1.5s infinite; }
+.section-badge.hot   { background: var(--red);   color: #fff; }
+@keyframes livePulse { 0%,100% { opacity:1; } 50% { opacity:.6; } }
+
+/* ── CARROSSEL HORIZONTAL ── */
+.carousel-wrap {
+  position: relative;
+}
+.carousel-row {
+  display: flex; gap: 16px;
+  padding: 6px 40px 16px;
+  overflow-x: auto; overflow-y: visible;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  /* Esconde scrollbar mas mantém funcional */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.carousel-row::-webkit-scrollbar { display: none; }
+
+/* Setas de navegação do carrossel */
+.carousel-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 80px;
+  background: linear-gradient(90deg, rgba(6,8,15,.9), transparent);
+  border: none; color: var(--txt); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5; transition: var(--transition);
+}
+.carousel-arrow.right {
+  right: 0; left: auto;
+  background: linear-gradient(270deg, rgba(6,8,15,.9), transparent);
+}
+.carousel-arrow:hover { color: var(--gold); }
+.carousel-arrow:focus, .carousel-arrow.tv-focused {
+  box-shadow: var(--focus-ring); background: rgba(6,8,15,.95);
+}
+
+/* ══════════════════════════════════════════════════
+   CARDS DE CONTEÚDO
+══════════════════════════════════════════════════ */
+.tv-card {
+  width: var(--card-w);
+  min-width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  display: flex; flex-direction: column;
+}
+/* Foco no card — destaque claro para controle remoto */
+.tv-card:hover,
+.tv-card:focus,
+.tv-card.tv-focused {
+  transform: scale(1.07) translateY(-6px);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px var(--gold), 0 16px 48px rgba(0,0,0,.7), var(--sh-gold);
+  z-index: 10;
+  outline: none;
+}
+
+/* Imagem do card */
+.card-img {
+  width: 100%; flex: 1;
+  background: var(--bg4);
+  overflow: hidden; position: relative;
+}
+.card-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform .4s ease;
+}
+.tv-card:focus .card-img img,
+.tv-card.tv-focused .card-img img {
+  transform: scale(1.06);
+}
+
+/* Placeholder quando sem imagem */
+.card-img-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--bg3), var(--bg4));
+  color: var(--txt3);
+}
+
+/* Overlay ao focar no card */
+.card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(0deg, rgba(6,8,15,.9) 0%, transparent 50%);
+  display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 14px;
+  opacity: 0; transition: opacity .22s ease;
+}
+.tv-card:focus .card-overlay,
+.tv-card.tv-focused .card-overlay {
+  opacity: 1;
+}
+
+/* Botão play no overlay */
+.card-play-btn {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--gold); color: #000;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 16px rgba(201,168,76,.4);
+}
+
+/* Rodapé do card (sempre visível) */
+.card-footer {
+  padding: 12px 14px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+}
+.card-title {
+  font-size: 17px; font-weight: 700; color: var(--txt);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.card-meta {
+  font-size: 14px; color: var(--txt2);
+  display: flex; align-items: center; gap: 8px;
+}
+.card-rating {
+  color: var(--gold); font-weight: 600;
+  display: flex; align-items: center; gap: 3px;
+}
+
+/* Badge no canto do card */
+.card-badge {
+  position: absolute; top: 10px; left: 10px; z-index: 3;
+  font-size: 10px; font-weight: 700; letter-spacing: .8px;
+  padding: 3px 8px; border-radius: 4px;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+}
+.card-badge.novo    { background: rgba(46,158,99,.85);  color: #fff; }
+.card-badge.popular { background: rgba(201,168,76,.85); color: #000; }
+.card-badge.live    { background: rgba(212,53,53,.9);   color: #fff; }
+.card-badge.hd      { background: rgba(74,114,196,.85); color: #fff; }
+
+/* Progresso de assistido */
+.card-progress {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: rgba(255,255,255,.1);
+}
+.card-progress-fill {
+  height: 100%; background: var(--gold);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── CARD WIDE (banner horizontal) ── */
+.tv-card-wide {
+  width: 360px; min-width: 360px; height: 200px;
+  flex-direction: row;
+}
+.tv-card-wide .card-img { flex: 0 0 150px; height: 100%; }
+.tv-card-wide .card-footer {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: center; border-top: none; border-left: 1px solid var(--border);
+  padding: 16px;
+}
+.tv-card-wide .card-title { white-space: normal; font-size: 18px; margin-bottom: 8px; }
+.tv-card-wide .card-desc {
+  font-size: 14px; color: var(--txt2); line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* ── CARD LIVE (ao vivo) ── */
+.tv-card-live {
+  width: 280px; min-width: 280px; height: 175px;
+}
+.live-dot {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: var(--live); font-size: 12px; font-weight: 700;
+}
+.live-dot::before {
+  content: '';
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--live);
+  animation: livePulse 1.2s infinite;
+}
+
+/* ══════════════════════════════════════════════════
+   GRADE PRINCIPAL (tela de categoria)
+══════════════════════════════════════════════════ */
+.tv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr));
+  gap: 20px;
+  padding: 24px 40px;
+}
+
+/* ══════════════════════════════════════════════════
+   FILTROS / ABAS
+══════════════════════════════════════════════════ */
+.tv-tabs {
+  display: flex; gap: 10px;
+  padding: 20px 40px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tv-tabs::-webkit-scrollbar { display: none; }
+.tv-tab {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--txt2);
+  padding: 10px 18px; font-size: 17px; font-family: inherit;
+  cursor: pointer; white-space: nowrap; transition: var(--transition);
+  flex-shrink: 0;
+}
+.tv-tab:hover, .tv-tab:focus, .tv-tab.tv-focused {
+  border-color: var(--gold); color: var(--txt);
+  box-shadow: var(--focus-ring);
+}
+.tv-tab.active {
+  background: var(--gold); color: #000;
+  border-color: var(--gold); font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════
+   MODAL DE DETALHES
+══════════════════════════════════════════════════ */
+#detail-modal {
+  position: fixed; inset: 0; z-index: 800;
+  background: rgba(6,8,15,.92);
+  backdrop-filter: blur(20px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px;
+  opacity: 0; visibility: hidden;
+  transition: opacity .3s ease, visibility .3s ease;
+}
+#detail-modal.open { opacity: 1; visibility: visible; }
+
+.detail-box {
+  width: 100%; max-width: 900px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7);
+  display: flex; flex-direction: column;
+  max-height: 85vh;
+}
+.detail-hero {
+  position: relative; height: 320px;
+  background: var(--bg3); overflow: hidden;
+}
+.detail-hero img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.detail-hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(0deg, var(--bg2) 0%, transparent 60%);
+}
+.detail-hero-content {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+  padding: 28px 32px;
+}
+.detail-title {
+  font-size: 36px; font-weight: 800; color: var(--txt);
+  margin-bottom: 10px; line-height: 1.1;
+}
+.detail-meta {
+  display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap; font-size: 16px; color: var(--txt2);
+}
+.detail-body {
+  flex: 1; overflow-y: auto; padding: 24px 32px;
+}
+.detail-desc {
+  font-size: 18px; color: var(--txt2); line-height: 1.6;
+  margin-bottom: 24px;
+}
+.detail-actions {
+  display: flex; gap: 14px; flex-wrap: wrap;
+}
+.detail-close {
+  position: absolute; top: 16px; right: 16px; z-index: 10;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(0,0,0,.6); border: 1px solid var(--border);
+  color: var(--txt); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+.detail-close:hover, .detail-close:focus, .detail-close.tv-focused {
+  background: var(--red); box-shadow: var(--focus-ring);
+}
+
+/* ══════════════════════════════════════════════════
+   TOAST / NOTIFICAÇÃO
+══════════════════════════════════════════════════ */
+#tv-toast {
+  position: fixed; bottom: 36px; left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: var(--bg3); border: 1px solid var(--border-g);
+  border-radius: 12px; padding: 14px 24px;
+  font-size: 18px; color: var(--txt);
+  box-shadow: var(--sh);
+  z-index: 9000;
+  display: flex; align-items: center; gap: 10px;
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+  min-width: 300px;
+  white-space: nowrap;
+}
+#tv-toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ══════════════════════════════════════════════════
+   RODAPÉ (discreto)
+══════════════════════════════════════════════════ */
+#tv-footer {
+  padding: 16px 40px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 14px; color: var(--txt3);
+  flex-shrink: 0;
+}
+.footer-links {
+  display: flex; gap: 20px;
+}
+.footer-links a {
+  color: var(--txt3); text-decoration: none; transition: var(--transition);
+}
+.footer-links a:hover, .footer-links a:focus { color: var(--gold); }
+
+/* ══════════════════════════════════════════════════
+   TELA VAZIA / LOADING
+══════════════════════════════════════════════════ */
+.tv-loading {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 300px; gap: 20px; color: var(--txt2);
+}
+.loading-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════════════════
+   SKELETON / PLACEHOLDER de cards
+══════════════════════════════════════════════════ */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: var(--r);
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+.skeleton-card {
+  width: var(--card-w); min-width: var(--card-w); height: var(--card-h);
+  border-radius: var(--r-lg);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVIDADE — TVs diferentes
+══════════════════════════════════════════════════ */
+
+/* TV 4K (3840px) — cards maiores */
+@media (min-width: 3000px) {
+  :root {
+    --card-w: 340px;
+    --card-h: 480px;
+    --header-h: 90px;
+    font-size: 24px;
+  }
+  .hero-title { font-size: 72px; }
+  .section-title { font-size: 30px; }
+}
+
+/* TV Full HD 1080p (padrão) */
+@media (min-width: 1920px) and (max-width: 2999px) {
+  :root {
+    --card-w: 260px;
+    --card-h: 370px;
+    --header-h: 78px;
+  }
+  .hero-title { font-size: 60px; }
+}
+
+/* TV HD / Monitor grande */
+@media (max-width: 1920px) {
+  :root {
+    --card-w: 200px;
+    --card-h: 285px;
+  }
+}
+
+/* Tablet grande / TV pequena */
+@media (max-width: 1400px) {
+  :root {
+    --card-w: 180px;
+    --card-h: 260px;
+    --header-h: 60px;
+  }
+  .hero-title { font-size: 40px; }
+  .tv-hero { height: 380px; }
+}
+
+/* ══════════════════════════════════════════════════
+   INDICADOR DE FOCO PARA ACESSIBILIDADE (d-pad)
+   Mostra qual elemento está selecionado
+══════════════════════════════════════════════════ */
+.focus-indicator {
+  position: fixed; top: 16px; right: 16px; z-index: 9999;
+  background: var(--bg3); border: 1px solid var(--border-g);
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 14px; color: var(--txt3);
+  opacity: 0; transition: opacity .3s;
+  pointer-events: none;
+}
+.focus-indicator.show { opacity: 1; }
+
+/* ══════════════════════════════════════════════════
+   ANIMAÇÕES DE ENTRADA
+══════════════════════════════════════════════════ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-in { animation: fadeInUp .5s ease forwards; }
+.animate-in-delay-1 { animation-delay: .1s; opacity: 0; }
+.animate-in-delay-2 { animation-delay: .2s; opacity: 0; }
+.animate-in-delay-3 { animation-delay: .3s; opacity: 0; }
+
+/* ══════════════════════════════════════════════════
+   UTILITÁRIOS
+══════════════════════════════════════════════════ */
+.hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     SPLASH SCREEN — aparece na inicialização
+══════════════════════════════════════════════ -->
+<div id="rs-splash">
+  <div class="splash-inner" style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:20px">
+    <div class="splash-logo">
+      <!-- Ícone de coroa — identidade Royal Streams -->
+      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 55 L20 25 L35 42 L40 20 L45 42 L60 25 L70 55 Z" fill="var(--gold)" opacity=".9"/>
+        <rect x="10" y="56" width="60" height="8" rx="4" fill="var(--gold)"/>
+        <circle cx="20" cy="25" r="5" fill="var(--gold-l)"/>
+        <circle cx="40" cy="20" r="5" fill="var(--gold-l)"/>
+        <circle cx="60" cy="25" r="5" fill="var(--gold-l)"/>
+      </svg>
+    </div>
+    <div class="splash-title">Royal <span>Streams</span></div>
+    <div class="splash-subtitle">Entretenimento Premium</div>
+    <div class="splash-bar">
+      <div class="splash-bar-fill"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     HEADER FIXO
+══════════════════════════════════════════════ -->
+<header id="tv-header">
+  <!-- Logo / Brand -->
+  <div class="header-brand">
+    <div class="header-brand-icon">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 17L7 7.5 10.5 13 12 6 13.5 13 17 7.5 21 17Z" fill="currentColor" style="color:#000"/>
+        <rect x="3" y="17.5" width="18" height="2.5" rx="1.2" fill="currentColor" style="color:#000"/>
+      </svg>
+    </div>
+    <div class="header-brand-name">Royal <span>Streams</span></div>
+  </div>
+
+  <!-- Barra de pesquisa -->
+  <div class="header-search" tabindex="0" id="searchBar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" placeholder="Buscar filmes, séries, canais..." id="searchInput"
+           onkeydown="handleSearchKey(event)">
+  </div>
+
+  <!-- Controles do header -->
+  <div class="header-controls">
+    <!-- Notificações -->
+    <button class="hc-btn focusable" tabindex="0" title="Notificações" onclick="showToast('🔔 Sem novas notificações')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span class="hc-badge"></span>
+    </button>
+
+    <!-- Configurações -->
+    <button class="hc-btn focusable" tabindex="0" title="Configurações" onclick="showToast('⚙️ Configurações')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+
+    <!-- Avatar do perfil -->
+    <div class="hc-avatar focusable" tabindex="0" title="Perfil" onclick="showToast('👤 Perfil do usuário')">R</div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════
+     LAYOUT PRINCIPAL: DRAWER + CONTEÚDO
+══════════════════════════════════════════════ -->
+<div id="tv-layout">
+
+  <!-- ── DRAWER LATERAL ── -->
+  <nav id="tv-drawer" role="navigation" aria-label="Menu principal">
+
+    <!-- Botão toggle do drawer -->
+    <button class="drawer-toggle focusable" tabindex="0" id="drawerToggle"
+            onclick="toggleDrawer()" title="Expandir/colapsar menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
+
+    <!-- Menu de navegação -->
+    <div class="drawer-menu" id="drawerMenu">
+
+      <!-- Início -->
+      <button class="drawer-item focusable active" tabindex="0" data-section="home"
+              onclick="navigateTo('home', this)">
+        <span class="di-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </span>
+        <span class="di-label">Início</span>
+      </button>
+
+      <!-- Ao Vivo -->
+      <button class="drawer-item focusable" tabindex="0" data-section="live"
+              onclick="navigateTo('live', this)">
+        <span class="di-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </span>
+        <span class="di-label">Ao Vivo</span>
+        <span class="di-badge">AO VIVO</span>
+      </button>
+
+      <!-- Filmes -->
+      <button class="drawer-item focusable" tabindex="0" data-section="movies"
+              onclick="navigateTo('movies', this)">
+        <span class="di-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+            <line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/>
+            <line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/>
+            <line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/>
+            <line x1="17" y1="7" x2="22" y2="7"/>
+          </svg>
+        </span>
+        <span class="di-label">Filmes</span>
+      </button>
+
+      <!-- Séries -->
+      <button class="drawer-item focusable" tabindex="0" data-section="series"
+              onclick="navigateTo('series', this)">
+        <span class="di-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+            <polyline points="17 2 12 7 7 2"/>
+          </svg>
+        </span>
+        <span class="di-label">Séries</span>
+      </button>
+
+      <!-- Esportes -->
+      <button class="drawer-item focusable" tabindex="0" data-section="sports"
+              onclick="navigateTo('sports', this)">
+        <span class="di-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4l3 3"/>
+          </svg>
+        </span>
+        <span class="di-label">Esportes</span>
+      </button>
+
+      <div class="drawer-sep"></div>
+
+      <!-- Minha Lista -->
+      <button class="drawer-item focusable" tabindex="0" data-section="mylist"
+              onclick="navigateTo('mylist', this)">
+        <span class="di-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </span>
+        <span class="di-label">Minha Lista</span>
+      </button>
+
+      <!-- Continuar Assistindo -->
+      <button class="drawer-item focusable" tabindex="0" data-section="continue"
+              onclick="navigateTo('continue', this)">
+        <span class="di-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="10 8 16 12 10 16 10 8"/>
+          </svg>
+        </span>
+        <span class="di-label">Continuar</span>
+      </button>
+
+      <div class="drawer-sep"></div>
+
+      <!-- Configurações -->
+      <button class="drawer-item focusable" tabindex="0" data-section="settings"
+              onclick="navigateTo('settings', this)">
+        <span class="di-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+          </svg>
+        </span>
+        <span class="di-label">Configurações</span>
+      </button>
+    </div>
+
+    <!-- Rodapé do drawer -->
+    <div class="drawer-footer">
+      <button class="drawer-item focusable" tabindex="0" onclick="showToast('Saindo...')">
+        <span class="di-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </span>
+        <span class="di-label">Sair</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── ÁREA DE CONTEÚDO ── -->
+  <main id="tv-content" tabindex="-1">
+
+    <!-- ══ HERO BANNER ══ -->
+    <div class="tv-hero animate-in" id="heroBanner">
+      <div class="tv-hero-bg" id="heroBg"
+           style="background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920&q=80')">
+      </div>
+      <div class="tv-hero-content">
+        <div class="hero-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          Em Destaque
+        </div>
+        <h1 class="hero-title" id="heroTitle">Dune: Parte Dois</h1>
+        <div class="hero-meta">
+          <span class="meta-rating">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            8.9
+          </span>
+          <span>2024</span>
+          <span>2h 46min</span>
+          <span>4K | HDR</span>
+          <span style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:14px">Ação</span>
+        </div>
+        <p class="hero-desc" id="heroDesc">
+          Paul Atreides une-se a Chani e aos Fremen enquanto busca vingança contra os conspiradores que destruíram sua família.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-play focusable" tabindex="0"
+                  onclick="openDetail({title:'Dune: Parte Dois',desc:'Paul Atreides une-se a Chani e aos Fremen enquanto busca vingança.',rating:'8.9',year:'2024',duration:'2h 46min'})">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Assistir
+          </button>
+          <button class="btn-info focusable" tabindex="0"
+                  onclick="openDetail({title:'Dune: Parte Dois',desc:'Paul Atreides une-se a Chani e aos Fremen enquanto busca vingança.',rating:'8.9',year:'2024',duration:'2h 46min'})">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Mais Info
+          </button>
+        </div>
+      </div>
+      <!-- Indicadores -->
+      <div class="hero-dots">
+        <div class="hero-dot active" onclick="switchHero(0)"></div>
+        <div class="hero-dot" onclick="switchHero(1)"></div>
+        <div class="hero-dot" onclick="switchHero(2)"></div>
+      </div>
+    </div>
+
+    <!-- ══ ABAS DE CATEGORIA ══ -->
+    <div class="tv-tabs animate-in animate-in-delay-1" id="categoryTabs">
+      <button class="tv-tab active focusable" tabindex="0" onclick="filterContent('all', this)">Todos</button>
+      <button class="tv-tab focusable" tabindex="0" onclick="filterContent('action', this)">Ação</button>
+      <button class="tv-tab focusable" tabindex="0" onclick="filterContent('drama', this)">Drama</button>
+      <button class="tv-tab focusable" tabindex="0" onclick="filterContent('comedy', this)">Comédia</button>
+      <button class="tv-tab focusable" tabindex="0" onclick="filterContent('thriller', this)">Suspense</button>
+      <button class="tv-tab focusable" tabindex="0" onclick="filterContent('sci-fi', this)">Ficção</button>
+      <button class="tv-tab focusable" tabindex="0" onclick="filterContent('animation', this)">Animação</button>
+      <button class="tv-tab focusable" tabindex="0" onclick="filterContent('documentary', this)">Documentário</button>
+    </div>
+
+    <!-- ══ SEÇÃO: AO VIVO ══ -->
+    <section class="tv-section animate-in animate-in-delay-1">
+      <div class="section-header">
+        <div class="section-badge live">Ao Vivo</div>
+        <h2 class="section-title">Canais ao Vivo</h2>
+        <button class="section-see-all focusable" tabindex="0" onclick="navigateTo('live', null)">Ver todos →</button>
+      </div>
+      <div class="carousel-wrap">
+        <button class="carousel-arrow focusable" tabindex="0" onclick="scrollCarousel('liveRow', -1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="carousel-row" id="liveRow">
+          <!-- Cards Ao Vivo gerados pelo JS -->
+        </div>
+        <button class="carousel-arrow right focusable" tabindex="0" onclick="scrollCarousel('liveRow', 1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ══ SEÇÃO: CONTINUAR ASSISTINDO ══ -->
+    <section class="tv-section animate-in animate-in-delay-2">
+      <div class="section-header">
+        <h2 class="section-title">Continuar Assistindo</h2>
+        <button class="section-see-all focusable" tabindex="0">Ver todos →</button>
+      </div>
+      <div class="carousel-wrap">
+        <button class="carousel-arrow focusable" tabindex="0" onclick="scrollCarousel('continueRow', -1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="carousel-row" id="continueRow">
+          <!-- Cards com progresso gerados pelo JS -->
+        </div>
+        <button class="carousel-arrow right focusable" tabindex="0" onclick="scrollCarousel('continueRow', 1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ══ SEÇÃO: LANÇAMENTOS ══ -->
+    <section class="tv-section animate-in animate-in-delay-2">
+      <div class="section-header">
+        <div class="section-badge new">Novo</div>
+        <h2 class="section-title">Lançamentos</h2>
+        <button class="section-see-all focusable" tabindex="0">Ver todos →</button>
+      </div>
+      <div class="carousel-wrap">
+        <button class="carousel-arrow focusable" tabindex="0" onclick="scrollCarousel('newRow', -1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="carousel-row" id="newRow"></div>
+        <button class="carousel-arrow right focusable" tabindex="0" onclick="scrollCarousel('newRow', 1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ══ SEÇÃO: MAIS POPULARES ══ -->
+    <section class="tv-section animate-in animate-in-delay-3">
+      <div class="section-header">
+        <div class="section-badge hot">🔥 Popular</div>
+        <h2 class="section-title">Mais Populares</h2>
+        <button class="section-see-all focusable" tabindex="0">Ver todos →</button>
+      </div>
+      <div class="carousel-wrap">
+        <button class="carousel-arrow focusable" tabindex="0" onclick="scrollCarousel('popularRow', -1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="carousel-row" id="popularRow"></div>
+        <button class="carousel-arrow right focusable" tabindex="0" onclick="scrollCarousel('popularRow', 1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ══ SEÇÃO: SÉRIES ══ -->
+    <section class="tv-section">
+      <div class="section-header">
+        <h2 class="section-title">Séries em Alta</h2>
+        <button class="section-see-all focusable" tabindex="0">Ver todos →</button>
+      </div>
+      <div class="carousel-wrap">
+        <button class="carousel-arrow focusable" tabindex="0" onclick="scrollCarousel('seriesRow', -1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="carousel-row" id="seriesRow"></div>
+        <button class="carousel-arrow right focusable" tabindex="0" onclick="scrollCarousel('seriesRow', 1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ══ RODAPÉ ══ -->
+    <footer id="tv-footer">
+      <div class="footer-links">
+        <a href="#" tabindex="0" class="focusable">Sobre</a>
+        <a href="#" tabindex="0" class="focusable">Privacidade</a>
+        <a href="#" tabindex="0" class="focusable">Suporte</a>
+      </div>
+      <span>© 2024 Royal Streams — Versão TV 2.0</span>
+    </footer>
+
+  </main><!-- /tv-content -->
+</div><!-- /tv-layout -->
+
+<!-- ══════════════════════════════════════════════
+     MODAL DE DETALHES
+══════════════════════════════════════════════ -->
+<div id="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle"
+     onclick="if(event.target===this)closeDetail()">
+  <div class="detail-box">
+    <div class="detail-hero">
+      <img id="detailImg" src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=900&q=80" alt="">
+      <button class="detail-close focusable" tabindex="0" onclick="closeDetail()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <div class="detail-hero-content">
+        <h2 class="detail-title" id="detailTitle">-</h2>
+        <div class="detail-meta" id="detailMeta"></div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <p class="detail-desc" id="detailDesc">-</p>
+      <div class="detail-actions">
+        <button class="btn-play focusable" tabindex="0" onclick="showToast('▶️ Iniciando reprodução...')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Assistir Agora
+        </button>
+        <button class="btn-info focusable" tabindex="0" onclick="showToast('➕ Adicionado à sua lista!')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Minha Lista
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TOAST DE NOTIFICAÇÃO
+══════════════════════════════════════════════ -->
+<div id="tv-toast">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="toastIcon">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+  <span id="toastMsg">-</span>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT — Controle Remoto, Navegação e Conteúdo
+══════════════════════════════════════════════════════════ -->
+<script>
+/* ═══════════════════════════════════════════════════
+   DADOS DE CONTEÚDO — substituir por chamada à API
+═══════════════════════════════════════════════════ */
+const CONTENT_DATA = {
+  movies: [
+    { id:1, title:'Oppenheimer', year:'2023', rating:'8.3', genre:'Drama', duration:'3h', badge:'popular', progress:0,
+      img:'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&q=80',
+      desc:'A história do físico J. Robert Oppenheimer e seu papel no desenvolvimento da bomba atômica.' },
+    { id:2, title:'Barbie', year:'2023', rating:'6.9', genre:'Comédia', duration:'1h54', badge:'novo', progress:0,
+      img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
+      desc:'Barbie parte em jornada de descoberta fora de Barbieland.' },
+    { id:3, title:'Poor Things', year:'2023', rating:'8.0', genre:'Drama', duration:'2h21', badge:'novo', progress:0,
+      img:'https://images.unsplash.com/photo-1617957743103-9b1688328c04?w=400&q=80',
+      desc:'A incrível história de Bella Baxter, jovem ressuscitada pelo excêntrico cirurgião Godwin Baxter.' },
+    { id:4, title:'Wonka', year:'2023', rating:'7.1', genre:'Fantasia', duration:'1h56', badge:'', progress:0,
+      img:'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80',
+      desc:'A história de como o jovem Willy Wonka se tornou o chocolateiro mais inventivo do mundo.' },
+    { id:5, title:'Aquaman 2', year:'2023', rating:'5.5', genre:'Ação', duration:'2h4', badge:'hd', progress:0,
+      img:'https://images.unsplash.com/photo-1620501635280-eb0ef0de6b8f?w=400&q=80',
+      desc:'Arthur Curry é forçado a dar mais um passo e se tornar o rei que ele não quer ser.' },
+    { id:6, title:'The Holdovers', year:'2023', rating:'7.9', genre:'Comédia', duration:'2h13', badge:'', progress:0,
+      img:'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400&q=80',
+      desc:'Um rabugento professor de história fica na escola durante as férias com um aluno problemático.' },
+    { id:7, title:'Maestro', year:'2023', rating:'7.2', genre:'Drama', duration:'2h9', badge:'', progress:0,
+      img:'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=400&q=80',
+      desc:'A história de amor de Leonard Bernstein e Felicia Montealegre.' },
+    { id:8, title:'Migration', year:'2023', rating:'7.0', genre:'Animação', duration:'1h23', badge:'novo', progress:0,
+      img:'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=400&q=80',
+      desc:'Uma família de patos decide migrar para terras mais tropicais.' },
+  ],
+  series: [
+    { id:10, title:'Fallout', year:'2024', rating:'8.5', genre:'Ficção', duration:'T1 E8', badge:'novo', progress:0,
+      img:'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80',
+      desc:'Após uma guerra nuclear, sobreviventes emergem de abrigos subterrâneos em Los Angeles.' },
+    { id:11, title:'Shogun', year:'2024', rating:'9.0', genre:'Drama', duration:'T1 E10', badge:'popular', progress:0,
+      img:'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=400&q=80',
+      desc:'Um navegador inglês naufragado no Japão feudal se envolve nas guerras de poder entre samurais.' },
+    { id:12, title:'3 Corpos', year:'2024', rating:'7.6', genre:'Ficção', duration:'T1 E8', badge:'novo', progress:0,
+      img:'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400&q=80',
+      desc:'Uma ameaça alienígena à Terra surge enquanto cinco amigos tentam resolver o maior dos mistérios.' },
+    { id:13, title:'The Bear', year:'2023', rating:'8.9', genre:'Drama', duration:'T2 E10', badge:'popular', progress:0,
+      img:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80',
+      desc:'Um famoso chef de Chicago retorna para administrar o sanduíche de sua família.' },
+    { id:14, title:'Severance', year:'2022', rating:'8.7', genre:'Thriller', duration:'T1 E9', badge:'', progress:0,
+      img:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=80',
+      desc:'Funcionários de uma empresa submetem a uma cirurgia que separa suas memórias de trabalho das pessoais.' },
+    { id:15, title:'House of Dragon', year:'2024', rating:'8.4', genre:'Fantasia', duration:'T2 E8', badge:'', progress:0,
+      img:'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&q=80',
+      desc:'A guerra civil entre as fações da família Targaryen pelo Trono de Ferro.' },
+  ],
+  live: [
+    { id:20, title:'Royal Sports HD', genre:'Esportes', badge:'live', isLive:true,
+      img:'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&q=80',
+      desc:'O melhor do esporte ao vivo.' },
+    { id:21, title:'Royal News', genre:'Notícias', badge:'live', isLive:true,
+      img:'https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=400&q=80',
+      desc:'Notícias em tempo real.' },
+    { id:22, title:'Royal Cinema 4K', genre:'Filmes', badge:'live', isLive:true,
+      img:'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&q=80',
+      desc:'Cinema em alta qualidade ao vivo.' },
+    { id:23, title:'Royal Entretenimento', genre:'Variedades', badge:'live', isLive:true,
+      img:'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=80',
+      desc:'Variedades e entretenimento.' },
+    { id:24, title:'Royal Kids', genre:'Infantil', badge:'live', isLive:true,
+      img:'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&q=80',
+      desc:'Programação infantil.' },
+  ]
+};
+
+/* Itens em andamento (com progresso) */
+const CONTINUE_DATA = [
+  { ...CONTENT_DATA.series[0], progress: 65, episode:'T1 E5' },
+  { ...CONTENT_DATA.movies[0], progress: 30 },
+  { ...CONTENT_DATA.series[3], progress: 82, episode:'T2 E8' },
+  { ...CONTENT_DATA.movies[2], progress: 15 },
+  { ...CONTENT_DATA.series[4], progress: 50, episode:'T1 E6' },
+];
+
+/* Herói rotativo */
+const HERO_DATA = [
+  { title:'Dune: Parte Dois', desc:'Paul Atreides une-se a Chani e aos Fremen enquanto busca vingança contra os conspiradores que destruíram sua família.', rating:'8.9', year:'2024', duration:'2h 46min', img:'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920&q=80' },
+  { title:'Shogun', desc:'Um navegador inglês naufragado no Japão feudal do séc. XVII se envolve nas guerras de poder entre samurais rivais.', rating:'9.0', year:'2024', duration:'T1 E10', img:'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1920&q=80' },
+  { title:'Oppenheimer', desc:'A história do físico J. Robert Oppenheimer e seu papel no desenvolvimento da bomba atômica durante a Segunda Guerra Mundial.', rating:'8.3', year:'2023', duration:'3h 0min', img:'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1920&q=80' },
+];
+
+/* ═══════════════════════════════════════════════════
+   RENDERIZAÇÃO DE CARDS
+═══════════════════════════════════════════════════ */
+
+/**
+ * Cria HTML de um card de conteúdo
+ */
+function createCard(item, showProgress) {
+  const badgeHtml = item.badge
+    ? `<div class="card-badge ${item.badge}">${item.badge === 'novo' ? 'Novo' : item.badge === 'popular' ? '🔥 Top' : item.badge === 'live' ? '● AO VIVO' : item.badge.toUpperCase()}</div>`
+    : '';
+
+  const progressHtml = showProgress && item.progress > 0
+    ? `<div class="card-progress"><div class="card-progress-fill" style="width:${item.progress}%"></div></div>`
+    : '';
+
+  const liveHtml = item.isLive
+    ? `<div class="live-dot" style="position:absolute;bottom:8px;left:8px;z-index:3;font-size:12px">AO VIVO</div>`
+    : '';
+
+  const episodeHtml = item.episode ? `<span>${item.episode}</span>` : '';
+
+  return `
+    <div class="tv-card focusable" tabindex="0" role="button" aria-label="${item.title}"
+         onclick="openDetail(${JSON.stringify(item).replace(/"/g,'&quot;')})"
+         onkeydown="if(event.key==='Enter'||event.key===' ')openDetail(${JSON.stringify(item).replace(/"/g,'&quot;')})">
+      <div class="card-img">
+        ${item.img
+          ? `<img src="${item.img}" alt="${item.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'card-img-placeholder\\'><svg width=\\'40\\' height=\\'40\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\'><rect x=\\'2\\' y=\\'2\\' width=\\'20\\' height=\\'20\\' rx=\\'2\\'/><circle cx=\\'8\\' cy=\\'8\\' r=\\'2\\'/><path d=\\'M2 16l5-5 3 3 3-3 5 5\\'/></svg></div>'">`
+          : `<div class="card-img-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div>`
+        }
+        ${badgeHtml}
+        ${liveHtml}
+        <div class="card-overlay">
+          <div class="card-play-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+          <div style="font-size:14px;color:var(--txt2);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${item.desc||''}</div>
+        </div>
+        ${progressHtml}
+      </div>
+      <div class="card-footer">
+        <div class="card-title">${item.title}</div>
+        <div class="card-meta">
+          ${item.rating ? `<span class="card-rating"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>${item.rating}</span>` : ''}
+          ${item.year ? `<span>${item.year}</span>` : ''}
+          ${episodeHtml}
+          ${item.genre ? `<span>${item.genre}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+/**
+ * Cria card para canal ao vivo (wide)
+ */
+function createLiveCard(item) {
+  return `
+    <div class="tv-card tv-card-live focusable" tabindex="0" role="button" aria-label="${item.title}"
+         onclick="showToast('▶️ Abrindo ${item.title}...')"
+         onkeydown="if(event.key==='Enter')showToast('▶️ Abrindo ${item.title}...')">
+      <div class="card-img" style="position:relative">
+        ${item.img ? `<img src="${item.img}" alt="${item.title}" loading="lazy">` : ''}
+        <div class="card-badge live">● AO VIVO</div>
+      </div>
+      <div class="card-footer">
+        <div class="card-title">${item.title}</div>
+        <div class="card-meta">
+          <span class="live-dot">${item.genre}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+/**
+ * Popula todos os carrosséis com dados
+ */
+function populateCarousels() {
+  // Ao Vivo
+  const liveRow = document.getElementById('liveRow');
+  if (liveRow) liveRow.innerHTML = CONTENT_DATA.live.map(createLiveCard).join('');
+
+  // Continuar Assistindo
+  const continueRow = document.getElementById('continueRow');
+  if (continueRow) continueRow.innerHTML = CONTINUE_DATA.map(item => createCard(item, true)).join('');
+
+  // Lançamentos (filmes)
+  const newRow = document.getElementById('newRow');
+  if (newRow) newRow.innerHTML = CONTENT_DATA.movies.map(item => createCard(item, false)).join('');
+
+  // Populares (séries + filmes mesclados)
+  const popularRow = document.getElementById('popularRow');
+  if (popularRow) popularRow.innerHTML = [...CONTENT_DATA.series, ...CONTENT_DATA.movies.slice(0,4)].map(item => createCard(item, false)).join('');
+
+  // Séries
+  const seriesRow = document.getElementById('seriesRow');
+  if (seriesRow) seriesRow.innerHTML = CONTENT_DATA.series.map(item => createCard(item, false)).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   NAVEGAÇÃO COM CONTROLE REMOTO (D-PAD)
+   Implementação completa para Android TV WebView
+═══════════════════════════════════════════════════ */
+
+let allFocusable = [];  // lista de todos elementos focáveis
+let currentFocusIndex = 0;
+
+/**
+ * Atualiza lista de elementos focáveis (chamar ao mudar layout)
+ */
+function refreshFocusableElements() {
+  allFocusable = Array.from(
+    document.querySelectorAll(
+      '.focusable:not([disabled]):not(.hidden), button:not([disabled]):not(.hidden), [tabindex="0"]:not(.hidden)'
+    )
+  ).filter(el => {
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
+}
+
+/**
+ * Encontra o elemento focável mais próximo em uma direção
+ * Usado para navegação espacial com D-pad
+ */
+function findNearest(current, direction) {
+  if (!current) return allFocusable[0] || null;
+
+  const cr = current.getBoundingClientRect();
+  const cx = cr.left + cr.width / 2;
+  const cy = cr.top  + cr.height / 2;
+
+  let best = null;
+  let bestScore = Infinity;
+
+  for (const el of allFocusable) {
+    if (el === current) continue;
+    const r = el.getBoundingClientRect();
+    const ex = r.left + r.width  / 2;
+    const ey = r.top  + r.height / 2;
+
+    const dx = ex - cx;
+    const dy = ey - cy;
+
+    // Filtro por direção — só considera elementos na direção correta
+    let valid = false;
+    if      (direction === 'right' && dx > 10) valid = true;
+    else if (direction === 'left'  && dx < -10) valid = true;
+    else if (direction === 'down'  && dy > 10) valid = true;
+    else if (direction === 'up'    && dy < -10) valid = true;
+
+    if (!valid) continue;
+
+    // Score: distância euclidiana com peso na direção principal
+    let score;
+    if (direction === 'right' || direction === 'left') {
+      score = Math.abs(dx) + Math.abs(dy) * 3;
+    } else {
+      score = Math.abs(dy) + Math.abs(dx) * 3;
+    }
+
+    if (score < bestScore) {
+      bestScore = score;
+      best = el;
+    }
+  }
+
+  return best;
+}
+
+/**
+ * Handler global de teclas — controle remoto e teclado
+ */
+document.addEventListener('keydown', function(e) {
+  const focused = document.activeElement;
+
+  // Se o foco está em um input de texto, não interceptar setas
+  if (focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA')) {
+    if (e.key === 'Escape') focused.blur();
+    return;
+  }
+
+  // Mapeamento de teclas do controle remoto e teclado
+  const keyMap = {
+    'ArrowRight': 'right',
+    'ArrowLeft':  'left',
+    'ArrowDown':  'down',
+    'ArrowUp':    'up',
+    'Enter':      'enter',
+    ' ':          'enter',   // Space = Enter no controle
+    'Escape':     'back',
+    'Backspace':  'back',
+    // Códigos alternativos de controles Android TV
+    'MediaPlayPause': 'enter',
+  };
+
+  const action = keyMap[e.key];
+  if (!action) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (action === 'enter') {
+    // Simula clique no elemento focado
+    if (focused && focused !== document.body) {
+      focused.click();
+    } else {
+      allFocusable[0]?.focus();
+    }
+    return;
+  }
+
+  if (action === 'back') {
+    // Fecha modal se aberto, senão vai para o início
+    const modal = document.getElementById('detail-modal');
+    if (modal && modal.classList.contains('open')) {
+      closeDetail();
+    }
+    return;
+  }
+
+  // Navegação direcional
+  refreshFocusableElements();
+  const target = findNearest(focused, action);
+  if (target) {
+    target.focus();
+    // Garante que o elemento esteja visível (scroll se necessário)
+    target.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  }
+});
+
+/* ═══════════════════════════════════════════════════
+   DRAWER — Abrir/Fechar
+═══════════════════════════════════════════════════ */
+
+let drawerExpanded = false;
+let drawerTimer = null;
+
+function toggleDrawer(force) {
+  const drawer = document.getElementById('tv-drawer');
+  if (force !== undefined) {
+    drawerExpanded = force;
+  } else {
+    drawerExpanded = !drawerExpanded;
+  }
+  drawer.classList.toggle('expanded', drawerExpanded);
+}
+
+// Auto-expande ao focar em itens do drawer
+document.addEventListener('focusin', function(e) {
+  const drawer = document.getElementById('tv-drawer');
+  if (drawer && drawer.contains(e.target)) {
+    clearTimeout(drawerTimer);
+    if (!drawerExpanded) toggleDrawer(true);
+  } else {
+    // Auto-colapsa ao sair do drawer (com delay)
+    if (drawerExpanded) {
+      clearTimeout(drawerTimer);
+      drawerTimer = setTimeout(() => toggleDrawer(false), 800);
+    }
+  }
+});
+
+/* ═══════════════════════════════════════════════════
+   NAVEGAÇÃO DE SEÇÕES
+═══════════════════════════════════════════════════ */
+
+function navigateTo(section, buttonEl) {
+  // Atualiza estado ativo no drawer
+  document.querySelectorAll('.drawer-item').forEach(b => b.classList.remove('active'));
+  if (buttonEl) buttonEl.classList.add('active');
+
+  showToast(`Navegando para: ${buttonEl?.querySelector('.di-label')?.textContent || section}`);
+
+  // Fecha o drawer após navegar
+  setTimeout(() => toggleDrawer(false), 300);
+
+  // Aqui você pode implementar o carregamento de conteúdo real por seção
+}
+
+/* ═══════════════════════════════════════════════════
+   HERO BANNER — rotação automática
+═══════════════════════════════════════════════════ */
+
+let heroIndex = 0;
+let heroInterval = null;
+
+function switchHero(index) {
+  const data = HERO_DATA[index % HERO_DATA.length];
+  heroIndex = index % HERO_DATA.length;
+
+  const bg    = document.getElementById('heroBg');
+  const title = document.getElementById('heroTitle');
+  const desc  = document.getElementById('heroDesc');
+  const dots  = document.querySelectorAll('.hero-dot');
+
+  // Transição suave
+  if (bg)    { bg.style.opacity = '0'; setTimeout(() => { bg.style.backgroundImage = `url('${data.img}')`; bg.style.opacity = '1'; }, 300); }
+  if (title) title.textContent = data.title;
+  if (desc)  desc.textContent  = data.desc;
+
+  dots.forEach((d, i) => d.classList.toggle('active', i === heroIndex));
+}
+
+function startHeroAutoPlay() {
+  heroInterval = setInterval(() => {
+    switchHero((heroIndex + 1) % HERO_DATA.length);
+  }, 7000);
+}
+
+/* ═══════════════════════════════════════════════════
+   SCROLL DE CARROSSEL
+═══════════════════════════════════════════════════ */
+
+function scrollCarousel(rowId, direction) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  const cardWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-w')) || 220;
+  row.scrollBy({ left: direction * (cardWidth + 16) * 3, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════════════
+   FILTROS / ABAS
+═══════════════════════════════════════════════════ */
+
+function filterContent(genre, tabEl) {
+  document.querySelectorAll('.tv-tab').forEach(t => t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+  showToast(`Filtrando: ${tabEl?.textContent || genre}`);
+  // Aqui filtrar os cards pelo gênero selecionado
+}
+
+/* ═══════════════════════════════════════════════════
+   MODAL DE DETALHES
+═══════════════════════════════════════════════════ */
+
+let lastFocusedEl = null;
+
+function openDetail(item) {
+  lastFocusedEl = document.activeElement;
+
+  const modal    = document.getElementById('detail-modal');
+  const titleEl  = document.getElementById('detailTitle');
+  const descEl   = document.getElementById('detailDesc');
+  const metaEl   = document.getElementById('detailMeta');
+  const imgEl    = document.getElementById('detailImg');
+
+  if (titleEl) titleEl.textContent = item.title || '-';
+  if (descEl)  descEl.textContent  = item.desc  || '-';
+  if (imgEl && item.img) imgEl.src = item.img;
+
+  if (metaEl) {
+    const parts = [
+      item.rating ? `⭐ ${item.rating}` : '',
+      item.year   ? item.year           : '',
+      item.duration || item.episode     ? (item.duration || item.episode) : '',
+      item.genre  ? item.genre          : '',
+    ].filter(Boolean);
+    metaEl.innerHTML = parts.map(p => `<span>${p}</span>`).join('');
+  }
+
+  modal.classList.add('open');
+
+  // Foca no botão de fechar
+  setTimeout(() => {
+    document.querySelector('.detail-close')?.focus();
+    refreshFocusableElements();
+  }, 100);
+}
+
+function closeDetail() {
+  const modal = document.getElementById('detail-modal');
+  modal.classList.remove('open');
+  // Retorna foco ao elemento anterior
+  if (lastFocusedEl) {
+    lastFocusedEl.focus();
+    lastFocusedEl = null;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   BUSCA
+═══════════════════════════════════════════════════ */
+
+function handleSearchKey(e) {
+  if (e.key === 'Enter') {
+    const q = e.target.value.trim();
+    if (q) showToast(`🔍 Buscando: "${q}"`);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   TOAST DE NOTIFICAÇÃO
+═══════════════════════════════════════════════════ */
+
+let toastTimer = null;
+
+function showToast(message, icon) {
+  const toast   = document.getElementById('tv-toast');
+  const msgEl   = document.getElementById('toastMsg');
+  const iconEl  = document.getElementById('toastIcon');
+
+  if (msgEl) msgEl.textContent = message;
+
+  // Ícone customizado ou padrão (check)
+  if (iconEl && icon) {
+    iconEl.innerHTML = icon;
+  }
+
+  toast.classList.add('show');
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* ═══════════════════════════════════════════════════
+   SPLASH SCREEN — remover após carregamento
+═══════════════════════════════════════════════════ */
+
+function hideSplash() {
+  const splash = document.getElementById('rs-splash');
+  if (splash) splash.classList.add('hide');
+  // Foca no primeiro elemento navegável
+  setTimeout(() => {
+    refreshFocusableElements();
+    const firstBtn = document.querySelector('.btn-play');
+    if (firstBtn) firstBtn.focus();
+  }, 100);
+}
+
+/* ═══════════════════════════════════════════════════
+   INICIALIZAÇÃO
+═══════════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Popula carrosséis com dados
+  populateCarousels();
+
+  // Inicia rotação do hero
+  startHeroAutoPlay();
+
+  // Inicializa lista de focáveis
+  refreshFocusableElements();
+
+  // Remove splash após carregamento (2.2s para a animação terminar)
+  setTimeout(hideSplash, 2200);
+
+  // Fallback: garante que splash some
+  setTimeout(hideSplash, 5000);
+});
+
+// Atualiza focáveis quando o DOM muda
+const observer = new MutationObserver(() => {
+  clearTimeout(window._focusRefreshTimer);
+  window._focusRefreshTimer = setTimeout(refreshFocusableElements, 200);
+});
+observer.observe(document.body, { childList: true, subtree: true, attributes: false });
+
+// Interface para controle de TV via WebView (chamável do Android)
+window.RoyalStreamsTV = {
+  /** Chamado pelo Android para simular tecla do controle remoto */
+  sendKey: function(key) {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+  },
+  /** Retorna o título do item atualmente em foco */
+  getFocusedTitle: function() {
+    const el = document.activeElement;
+    return el ? (el.getAttribute('aria-label') || el.textContent?.trim() || '') : '';
+  },
+  /** Mostra um toast (chamável do Android) */
+  showMessage: function(msg) { showToast(msg); },
+  /** Versão da interface TV */
+  version: '2.0.0'
+};
+</script>
+
+</body>
+</html>
