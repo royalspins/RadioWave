@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secret Fans VIP</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #ff4081;
+  --pink-dark: #c2185b;
+  --bg: #0d0d0d;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --text: #f5f0eb;
+  --text-muted: #888;
+  --border: #2e2e2e;
+  --admin-gold: #ffd700;
+  --admin-glow: rgba(255, 215, 0, 0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ───────── AUTH ───────── */
+#auth-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 30px 20px;
+  background: radial-gradient(ellipse at top, #1f0010 0%, #0d0d0d 60%);
+}
+#auth-screen h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.8rem;
+  color: var(--pink);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+#auth-screen p.subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 30px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 30px 24px;
+  border: 1px solid var(--border);
+}
+.auth-card input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 16px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.auth-card input:focus { border-color: var(--pink); }
+.auth-card input::placeholder { color: var(--text-muted); }
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--pink);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-bottom: 8px;
+}
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:hover { background: var(--pink-dark); }
+.btn-secondary {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-secondary:hover { border-color: var(--pink); color: var(--pink); }
+
+/* ───────── MAIN APP ───────── */
+#main-app { display: none; padding-bottom: 70px; }
+
+/* ADMIN BADGE */
+#admin-badge {
+  display: none;
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: var(--admin-gold);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  z-index: 999;
+  letter-spacing: 1px;
+  box-shadow: 0 0 14px var(--admin-gold);
+  animation: pulse-gold 2s infinite;
+}
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 14px var(--admin-gold); }
+  50% { box-shadow: 0 0 28px var(--admin-gold), 0 0 50px rgba(255,215,0,0.3); }
+}
+
+/* TABS */
+.tab { display: none; padding: 20px 14px 80px; }
+.tab.active { display: block; }
+.tab-header {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+/* FEED */
+#feed-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+#feed-controls select,
+#feed-controls input {
+  flex: 1;
+  min-width: 120px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#feed-controls select:focus,
+#feed-controls input:focus { border-color: var(--pink); }
+#feed-controls select option { background: var(--surface); }
+#feed-controls input::placeholder { color: var(--text-muted); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.post {
+  background: var(--surface);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.post:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.post img, .post video {
+  width: 100%;
+  display: block;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+}
+.post .post-caption {
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.post-creator {
+  padding: 8px 10px 0;
+  font-size: 0.75rem;
+  color: var(--pink);
+  font-weight: 500;
+}
+
+/* BLUR para conteúdo privado */
+.blur-wrap { position: relative; }
+.blur-wrap .blur-media { filter: blur(14px); transform: scale(1.05); }
+.blur-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.45);
+  gap: 8px;
+}
+.blur-overlay span { font-size: 1.6rem; }
+.blur-overlay p { font-size: 0.8rem; color: #fff; font-weight: 500; }
+.unlock-btn {
+  background: var(--pink);
+  color: #fff;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.unlock-btn:hover { background: var(--pink-dark); }
+
+/* ADMIN: conteúdo liberado com anel dourado */
+.post.admin-view {
+  border-color: var(--admin-gold);
+  box-shadow: 0 0 0 1px var(--admin-gold), inset 0 0 20px var(--admin-glow);
+}
+.admin-tag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: var(--admin-gold);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+/* ───────── INBOX ───────── */
+.message-thread {
+  max-height: 360px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.message-item {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+.message-item b { color: var(--pink); font-weight: 500; }
+.message-item .msg-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.inbox-input-row {
+  display: flex;
+  gap: 8px;
+}
+.inbox-input-row input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+}
+.inbox-input-row input:focus { border-color: var(--pink); }
+.inbox-input-row input::placeholder { color: var(--text-muted); }
+.inbox-input-row button {
+  background: var(--pink);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+
+/* ───────── UPLOAD ───────── */
+.upload-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.upload-opt-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 8px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+.upload-opt-btn:hover { border-color: var(--pink); background: var(--surface2); }
+.upload-opt-btn span { display: block; font-size: 1.6rem; margin-bottom: 6px; }
+#upload-preview > div {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}
+#upload-preview img, #upload-preview video {
+  width: 100%; border-radius: 8px; margin-bottom: 8px;
+}
+#upload-preview textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 8px;
+}
+#upload-preview button {
+  background: var(--pink);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+
+/* ───────── CLIENTES ───────── */
+.add-cliente-form {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.add-cliente-form h3 {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.add-cliente-form input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.add-cliente-form input:focus { border-color: var(--pink); }
+.add-cliente-form input::placeholder { color: var(--text-muted); }
+.cliente-item {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+.status-ativo { color: #4caf50; font-size: 0.8rem; font-weight: 500; }
+.status-inativo { color: #f44336; font-size: 0.8rem; font-weight: 500; }
+
+/* ───────── PERFIL ───────── */
+.perfil-card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  text-align: center;
+  margin-bottom: 16px;
+}
+.perfil-avatar {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--pink);
+  margin-bottom: 12px;
+}
+.perfil-nome {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+.perfil-bio { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px; }
+.perfil-stats { display: flex; justify-content: center; gap: 24px; }
+.stat { text-align: center; }
+.stat .val { font-size: 1.3rem; font-weight: 700; color: var(--pink); }
+.stat .lbl { font-size: 0.75rem; color: var(--text-muted); }
+
+/* ───────── BOTTOM NAV ───────── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; width: 100%;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0 14px;
+  z-index: 100;
+}
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  transition: color 0.2s;
+}
+.nav-btn span { font-size: 1.3rem; }
+.nav-btn.active { color: var(--pink); }
+.nav-plus {
+  background: var(--pink);
+  color: #fff !important;
+  border-radius: 50%;
+  width: 46px; height: 46px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem !important;
+  margin-top: -16px;
+  box-shadow: 0 4px 16px rgba(255, 64, 129, 0.4);
+  border: none;
+  cursor: pointer;
+}
+
+/* NOTIFICAÇÃO */
+.notification {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--pink);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  z-index: 2000;
+  display: none;
+  box-shadow: 0 4px 20px rgba(255, 64, 129, 0.3);
+  white-space: nowrap;
+}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+</head>
+<body>
+
+<div class="notification" id="notification"></div>
+<div id="admin-badge">👑 ADMIN</div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <h1>Secret Fans VIP</h1>
+  <p class="subtitle">Conteúdo exclusivo para assinantes</p>
+  <div class="auth-card">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Senha">
+    <button class="btn-primary" onclick="login()">Entrar</button>
+    <button class="btn-secondary" onclick="register()">Registrar como Criadora</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app">
+
+  <!-- FEED -->
+  <div id="feed" class="tab active">
+    <h2 class="tab-header">Feed</h2>
+    <div id="feed-controls">
+      <select id="feed-filter" onchange="loadFeed(true)">
+        <option value="todas">Todas</option>
+        <option value="previas">Prévias Grátis</option>
+        <option value="privadas">Privadas</option>
+      </select>
+      <input type="text" id="search-creators" placeholder="🔍 Pesquisar criadora" oninput="loadFeed(true)">
+    </div>
+    <div id="feed-list" class="grid-2"></div>
+  </div>
+
+  <!-- INBOX -->
+  <div id="inbox" class="tab">
+    <h2 class="tab-header">Mensagens</h2>
+    <div class="message-thread" id="messages-list"></div>
+    <div class="inbox-input-row">
+      <input type="text" id="msg-input" placeholder="Escrever mensagem...">
+      <button onclick="sendMessage()">↑</button>
+    </div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div id="upload" class="tab">
+    <h2 class="tab-header">Upload</h2>
+    <div class="upload-options">
+      <button class="upload-opt-btn" onclick="openUpload('foto')"><span>🖼️</span>Fotos</button>
+      <button class="upload-opt-btn" onclick="openUpload('video')"><span>🎬</span>Vídeos</button>
+      <button class="upload-opt-btn" onclick="openUpload('previa')"><span>✨</span>Prévias</button>
+    </div>
+    <div id="upload-preview"></div>
+  </div>
+
+  <!-- CLIENTES -->
+  <div id="clientes" class="tab">
+    <h2 class="tab-header">Clientes</h2>
+    <div class="add-cliente-form">
+      <h3>Registrar novo cliente</h3>
+      <input type="text" id="cliente-nome" placeholder="Nome do cliente">
+      <input type="password" id="cliente-senha" placeholder="Senha">
+      <input type="number" id="cliente-dias" placeholder="Dias de acesso">
+      <button class="btn-primary" onclick="addCliente()">Registrar</button>
+    </div>
+    <div id="clientes-list"></div>
+  </div>
+
+  <!-- PERFIL -->
+  <div id="perfil" class="tab">
+    <h2 class="tab-header">Perfil</h2>
+    <div class="perfil-card">
+      <img class="perfil-avatar" id="perfil-avatar" src="https://via.placeholder.com/90" alt="Avatar">
+      <h3 class="perfil-nome" id="perfil-nome">—</h3>
+      <p class="perfil-bio" id="perfil-bio"></p>
+      <div class="perfil-stats">
+        <div class="stat"><div class="val" id="perfil-seguidores">0</div><div class="lbl">Seguidores</div></div>
+        <div class="stat"><div class="val" id="perfil-fotos">0</div><div class="lbl">Fotos</div></div>
+        <div class="stat"><div class="val" id="perfil-videos">0</div><div class="lbl">Vídeos</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-feed" onclick="openTab('feed')"><span>🏠</span>Feed</button>
+    <button class="nav-btn" id="nav-inbox" onclick="openTab('inbox')"><span>💬</span>Inbox</button>
+    <button class="nav-plus" onclick="openTab('upload')">+</button>
+    <button class="nav-btn" id="nav-clientes" onclick="openTab('clientes')"><span>👥</span>Clientes</button>
+    <button class="nav-btn" id="nav-perfil" onclick="openTab('perfil')"><span>👤</span>Perfil</button>
+  </nav>
+
+</div>
+
+<script>
+// ─── FIREBASE CONFIG ───────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBnyWa8pSZOTw6wX5VwlhesiN2q18n5oVs",
+  authDomain: "royalcore-vipfans.firebaseapp.com",
+  databaseURL: "https://royalcore-vipfans-default-rtdb.firebaseio.com",
+  projectId: "royalcore-vipfans",
+  storageBucket: "royalcore-vipfans.firebasestorage.app",
+  messagingSenderId: "908046612259",
+  appId: "1:908046612259:web:d7ef4db2badb99d5ab7e96",
+  measurementId: "G-KZ0S2J26NM"
+};
+firebase.initializeApp(firebaseConfig);
+
+// ─── ADMIN UID ─────────────────────────────────────────────────────
+const ADMIN_UID = "pwCNtfxEoxTiAnaW09kn8vEUU4n2";
+
+let userId = null;
+let isAdmin = false;
+let userData = null;
+let currentMessageTo = null;
+
+// ─── NOTIFICAÇÃO ───────────────────────────────────────────────────
+function notify(msg) {
+  const n = document.getElementById('notification');
+  n.innerText = msg;
+  n.style.display = 'block';
+  setTimeout(() => n.style.display = 'none', 3000);
+}
+
+// ─── AUTH ──────────────────────────────────────────────────────────
+function login() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .then(user => initApp(user.user.uid))
+    .catch(e => alert(e.message));
+}
+
+function register() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  firebase.auth().createUserWithEmailAndPassword(email, password)
+    .then(user => {
+      firebase.database().ref('criadoras/' + user.user.uid + '/profile').set({
+        nome: email.split('@')[0], bio: '', avatar: '', capa: '',
+        seguidores: {}, fotos: {}, videos: {}, clientes: {}, inbox: {}
+      });
+      initApp(user.user.uid);
+    })
+    .catch(e => alert(e.message));
+}
+
+// ─── INIT APP ──────────────────────────────────────────────────────
+function initApp(uid) {
+  userId = uid;
+  isAdmin = (uid === ADMIN_UID);
+
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+
+  // Mostrar badge admin se for o admin
+  if (isAdmin) {
+    document.getElementById('admin-badge').style.display = 'block';
+    notify('👑 Bem-vindo, Admin! Acesso total liberado.');
+  }
+
+  loadFeed(true);
+  loadPerfil();
+  loadClientes();
+  loadMessages();
+  window.onscroll = () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) loadFeed();
+  };
+}
+
+// ─── NAVEGAÇÃO ─────────────────────────────────────────────────────
+function openTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const nb = document.getElementById('nav-' + tab);
+  if (nb) nb.classList.add('active');
+}
+
+// ─── FEED ──────────────────────────────────────────────────────────
+function loadFeed(reset = false) {
+  const feed = document.getElementById('feed-list');
+  if (reset) { feed.innerHTML = ''; }
+
+  const filtro = document.getElementById('feed-filter').value;
+  const search = document.getElementById('search-creators').value.toLowerCase();
+
+  firebase.database().ref('/criadoras/').once('value').then(snap => {
+    if (reset) feed.innerHTML = '';
+    snap.forEach(cSnap => {
+      const criadora = cSnap.val();
+      const profile = criadora.profile || {};
+      const nomeCriadora = profile.nome || cSnap.key;
+
+      if (search && !nomeCriadora.toLowerCase().includes(search)) return;
+
+      function adicionarConteudo(item, tipo) {
+        // Admin vê TUDO sem restrição
+        const acessoPrivado = item.privada && !isAdmin && (!item.acesso || !item.acesso[userId]);
+
+        if (!isAdmin) {
+          if (filtro === 'previas' && item.privada) return;
+          if (filtro === 'privadas' && !item.privada) return;
+        }
+
+        const mediaTag = tipo === 'video'
+          ? `<video src="${item.url}" ${isAdmin ? 'controls' : ''} class="${acessoPrivado ? 'blur-media' : ''}"></video>`
+          : `<img src="${item.url}" class="${acessoPrivado ? 'blur-media' : ''}"/>`;
+
+        const blurOverlay = acessoPrivado ? `
+          <div class="blur-overlay">
+            <span>🔒</span>
+            <p>Conteúdo Privado</p>
+            <button class="unlock-btn" onclick="comprarAcesso(event,'${cSnap.key}')">Desbloquear</button>
+          </div>` : '';
+
+        const adminTag = isAdmin && item.privada ? `<div class="admin-tag">👑 PRIVADO</div>` : '';
+        const postClass = `post${isAdmin && item.privada ? ' admin-view' : ''}`;
+
+        feed.innerHTML += `
+          <div class="${postClass}" onclick="openProfile('${cSnap.key}')">
+            ${adminTag}
+            <div class="blur-wrap">
+              ${mediaTag}
+              ${blurOverlay}
+            </div>
+            <div class="post-creator">${nomeCriadora}</div>
+            <div class="post-caption">${item.legenda || ''}</div>
+          </div>`;
+      }
+
+      if (criadora.fotos) Object.values(criadora.fotos).forEach(f => adicionarConteudo(f, 'foto'));
+      if (criadora.videos) Object.values(criadora.videos).forEach(v => adicionarConteudo(v, 'video'));
+    });
+  });
+}
+
+// ─── ABRIR PERFIL ──────────────────────────────────────────────────
+function openProfile(criadoraId) {
+  openTab('perfil');
+  firebase.database().ref('/criadoras/' + criadoraId + '/profile').once('value').then(snap => {
+    const p = snap.val() || {};
+    document.getElementById('perfil-avatar').src = p.avatar || 'https://via.placeholder.com/90';
+    document.getElementById('perfil-nome').innerText = p.nome || criadoraId;
+    document.getElementById('perfil-bio').innerText = p.bio || '';
+    document.getElementById('perfil-seguidores').innerText = Object.keys(p.seguidores || {}).length;
+    document.getElementById('perfil-fotos').innerText = Object.keys(p.fotos || {}).length;
+    document.getElementById('perfil-videos').innerText = Object.keys(p.videos || {}).length;
+  });
+}
+
+// ─── COMPRAR ACESSO ────────────────────────────────────────────────
+function comprarAcesso(e, criadoraId) {
+  e.stopPropagation();
+  if (isAdmin) { notify('Admin já tem acesso total!'); return; }
+  const clienteId = firebase.database().ref('criadoras/' + criadoraId + '/clientes').push().key;
+  firebase.database().ref('criadoras/' + criadoraId + '/clientes/' + clienteId).set({
+    nome: 'Cliente', senha: '123', dias: 30, ativo: true, dataInicio: Date.now()
+  });
+  notify('✅ Acesso desbloqueado!');
+  loadFeed(true);
+}
+
+// ─── UPLOAD ────────────────────────────────────────────────────────
+function openUpload(tipo) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
+  input.accept = tipo === 'foto' ? 'image/*' : tipo === 'video' ? 'video/*' : 'image/*,video/*';
+  input.onchange = e => previewUpload(e.target.files, tipo);
+  input.click();
+}
+
+function previewUpload(files, tipo) {
+  const preview = document.getElementById('upload-preview');
+  preview.innerHTML = '';
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const container = document.createElement('div');
+      const mediaHTML = tipo === 'video'
+        ? `<video src="${evt.target.result}" controls></video>`
+        : `<img src="${evt.target.result}"/>`;
+      container.innerHTML = `
+        ${mediaHTML}
+        <textarea placeholder="Legenda (opcional)"></textarea>
+        <button onclick="uploadFile(this,'${tipo}','${file.name}')">📤 Fazer Upload</button>`;
+      container.dataset.file = file.name;
+      container._file = file;
+      preview.appendChild(container);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function uploadFile(btn, tipo, nome) {
+  const legenda = btn.previousElementSibling.value;
+  const container = btn.parentElement;
+  const file = container._file;
+  if (!file) return alert('Arquivo não encontrado');
+
+  const storageRef = firebase.storage().ref('criadoras/' + userId + '/' + tipo + '/' + nome);
+  notify('⏳ Enviando...');
+  storageRef.put(file).then(() => storageRef.getDownloadURL().then(url => {
+    const refPath = 'criadoras/' + userId + '/' + (tipo === 'video' ? 'videos' : 'fotos') + '/' + nome;
+    firebase.database().ref(refPath).set({ url, privada: tipo !== 'previa', legenda, acesso: {} });
+    notify('✅ Upload concluído!');
+    loadFeed(true);
+    loadPerfil();
+    container.remove();
+  })).catch(e => alert('Erro no upload: ' + e.message));
+}
+
+// ─── CLIENTES ──────────────────────────────────────────────────────
+function addCliente() {
+  const nome = document.getElementById('cliente-nome').value;
+  const senha = document.getElementById('cliente-senha').value;
+  const dias = parseInt(document.getElementById('cliente-dias').value);
+  if (!nome || !senha || !dias) return alert('Preencha todos os campos');
+  const clienteId = firebase.database().ref().push().key;
+  firebase.database().ref('criadoras/' + userId + '/clientes/' + clienteId).set({
+    nome, senha, dias, ativo: true, dataInicio: Date.now()
+  });
+  notify('✅ Cliente registrado!');
+  loadClientes();
+}
+
+function loadClientes() {
+  const lista = document.getElementById('clientes-list');
+  lista.innerHTML = '';
+  firebase.database().ref('criadoras/' + userId + '/clientes').once('value').then(snap => {
+    snap.forEach(c => {
+      const cl = c.val();
+      const diasPassados = (Date.now() - cl.dataInicio) / 86400000;
+      const expirada = diasPassados > cl.dias;
+      if (expirada && cl.ativo) {
+        cl.ativo = false;
+        firebase.database().ref('criadoras/' + userId + '/clientes/' + c.key + '/ativo').set(false);
+      }
+      const diasRestantes = Math.max(0, Math.ceil(cl.dias - diasPassados));
+      lista.innerHTML += `
+        <div class="cliente-item">
+          <div>
+            <div style="font-weight:500">${cl.nome}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">${diasRestantes} dias restantes</div>
+          </div>
+          <span class="${cl.ativo ? 'status-ativo' : 'status-inativo'}">${cl.ativo ? '● Ativo' : '● Expirado'}</span>
+        </div>`;
+    });
+    if (!snap.exists()) lista.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;text-align:center;padding:20px">Nenhum cliente ainda.</p>';
+  });
+}
+
+// ─── INBOX ─────────────────────────────────────────────────────────
+function loadMessages() {
+  const msgList = document.getElementById('messages-list');
+  firebase.database().ref('criadoras/' + userId + '/inbox').on('value', snap => {
+    msgList.innerHTML = '';
+    snap.forEach(m => {
+      const msg = m.val();
+      const d = new Date(msg.timestamp);
+      const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      msgList.innerHTML += `
+        <div class="message-item">
+          <b>${msg.de === userId ? 'Você' : msg.de}</b>: ${msg.texto}
+          <div class="msg-time">${hora}</div>
+        </div>`;
+    });
+    msgList.scrollTop = msgList.scrollHeight;
+  });
+}
+
+function sendMessage() {
+  const texto = document.getElementById('msg-input').value.trim();
+  if (!texto) return;
+  const msgId = firebase.database().ref().push().key;
+  firebase.database().ref('criadoras/' + userId + '/inbox/' + msgId).set({
+    de: userId, para: currentMessageTo || 'criadora', texto, timestamp: Date.now()
+  });
+  document.getElementById('msg-input').value = '';
+}
+
+// ─── PERFIL ────────────────────────────────────────────────────────
+function loadPerfil() {
+  firebase.database().ref('/criadoras/' + userId + '/profile').once('value').then(snap => {
+    userData = snap.val() || {};
+    document.getElementById('perfil-avatar').src = userData.avatar || 'https://via.placeholder.com/90';
+    document.getElementById('perfil-nome').innerText = userData.nome || userId;
+    document.getElementById('perfil-bio').innerText = userData.bio || '';
+    document.getElementById('perfil-seguidores').innerText = Object.keys(userData.seguidores || {}).length;
+    document.getElementById('perfil-fotos').innerText = Object.keys(userData.fotos || {}).length;
+    document.getElementById('perfil-videos').innerText = Object.keys(userData.videos || {}).length;
+  });
+}
+</script>
+</body>
+</html>
