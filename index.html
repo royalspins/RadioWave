@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Royal Truco FULL</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<style>
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:sans-serif;background:#111;color:white;}
+.hidden{display:none;}
+input,button{padding:8px;margin:5px;border-radius:5px;border:none;}
+button{cursor:pointer;font-weight:bold;background:#ffcc00;}
+#start-screen,#login-screen,#main-screen{width:100%;height:100%;display:flex;justify-content:center;align-items:center;flex-direction:column;position:absolute;top:0;left:0;}
+#drawer{position:fixed;right:0;top:0;width:0;height:100%;background:#222;overflow-x:hidden;transition:0.5s;padding:20px;color:white;}
+#drawer.open{width:320px;}
+#avatar,#drawer-avatar{width:80px;height:80px;border-radius:50%;background:#555;margin-bottom:10px;cursor:pointer;}
+#coin-count{font-size:20px;}
+#mesa{position:absolute;top:100px;left:50%;transform:translateX(-50%);width:90%;height:300px;background:#333;border-radius:10px;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;}
+.card{width:60px;height:90px;background:white;color:black;margin:5px;display:flex;justify-content:center;align-items:center;font-weight:bold;border-radius:5px;cursor:pointer;}
+#popup-truco{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#333;padding:20px;border-radius:10px;display:none;flex-direction:column;align-items:center;}
+#chat{position:absolute;bottom:0;left:0;width:100%;height:150px;background:#222;display:flex;flex-direction:column;}
+#chat-messages{flex:1;overflow-y:auto;padding:5px;}
+#chat-input{display:flex;}
+#chat-input input{flex:1;}
+#notificacao{position:absolute;top:50px;left:50%;transform:translateX(-50%);background:#ffcc00;color:black;padding:10px 20px;border-radius:10px;display:none;}
+</style>
+</head>
+<body><div id="start-screen">
+  <h1>Royal Truco FULL</h1>
+  <button id="start-btn">Iniciar</button>
+</div><div id="login-screen" class="hidden">
+  <h2>Cadastro / Login</h2>
+  <input type="text" id="nome" placeholder="Nome do jogador">
+  <input type="text" id="username" placeholder="@usuario">
+  <input type="password" id="pin" placeholder="PIN 4 dígitos">
+  <input type="password" id="confirm-pin" placeholder="Confirmar PIN">
+  <button id="save-user">Continuar</button>
+</div><div id="main-screen" class="hidden">
+  <div style="position:absolute; top:10px; left:50%; transform:translateX(-50%);">Royal Coins: <span id="coin-count">1000</span></div>
+  <div id="avatar" onclick="toggleDrawer()"></div>
+  <h2>Bem-vindo, <span id="player-name"></span></h2>
+  <button onclick="openCoins()">Coins</button>
+  <button onclick="openSala()">Criar Sala Privada</button>
+  <button onclick="matchmaking()">Partida Rápida</button>
+  <div id="mesa"></div>
+</div><div id="drawer">
+  <div id="drawer-coins">Royal Coins: 1000</div>
+  <div id="drawer-avatar"></div>
+  <div id="drawer-name"></div>
+  <div>Partidas: <span id="total-games">0</span><br>Vitórias: <span id="wins">0</span><br>Derrotas: <span id="losses">0</span></div>
+  <input type="file" id="avatar-upload">
+  <button onclick="closeDrawer()">Fechar</button>
+</div><div id="popup-truco">
+  <div id="popup-text"></div>
+  <button onclick="respondeTruco('aceitar')">Aceitar</button>
+  <button onclick="respondeTruco('correr')">Correr</button>
+</div><div id="chat" class="hidden">
+  <div id="chat-messages"></div>
+  <div id="chat-input">
+    <input type="text" id="chat-msg" placeholder="Digite a mensagem">
+    <button onclick="sendChat()">Enviar</button>
+  </div>
+</div><div id="notificacao"></div><script>
+const firebaseConfig={apiKey:"SEU_API_KEY",authDomain:"SEU_AUTH_DOMAIN",databaseURL:"SEU_DATABASE_URL",projectId:"SEU_PROJECT_ID",storageBucket:"SEU_STORAGE_BUCKET",messagingSenderId:"SEU_MESSAGING_SENDER_ID",appId:"SEU_APP_ID"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+let currentUser="",currentNome="",currentCoins=1000;
+let salaAtual=null;
+
+document.getElementById('start-btn').addEventListener('click',()=>{
+  if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+});
+
+document.getElementById('save-user').addEventListener('click',()=>{
+  const nome=document.getElementById('nome').value.trim();
+  const username=document.getElementById('username').value.trim();
+  const pin=document.getElementById('pin').value.trim();
+  const confirmPin=document.getElementById('confirm-pin').value.trim();
+  if(!nome||!username||!pin||pin!==confirmPin||pin.length!==4){ alert('Preencha corretamente todos os campos'); return;}
+  db.ref('usuarios/'+username).get().then(snap=>{
+    if(snap.exists()){ alert('Usuário já existe, escolha outro @'); return;}
+    db.ref('usuarios/'+username).set({nome,nome,pin,coins:1000,partidas:0,vitorias:0,derrotas:0,friends:[],chat:[],rank:0}).then(()=>{
+      startGame(nome,username,1000);
+    });
+  });
+});
+
+function startGame(nome,username,coins){
+  currentUser=username; currentNome=nome; currentCoins=coins;
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('main-screen').classList.remove('hidden');
+  document.getElementById('player-name').innerText=nome;
+  document.getElementById('coin-count').innerText=coins;
+  document.getElementById('drawer-coins').innerText=coins;
+  document.getElementById('drawer-name').innerText=nome;
+}
+
+const drawer=document.getElementById('drawer');
+function toggleDrawer(){ drawer.classList.toggle('open'); }
+function closeDrawer(){ drawer.classList.remove('open'); }
+
+function openCoins(){ alert('Ganhe Royal Coins assistindo anúncios ou promoções.'); }
+
+function openSala(){
+  const code=Math.floor(1000+Math.random()*9000);
+  salaAtual=code;
+  showNotificacao("Sala privada criada: "+code);
+  db.ref('salas/'+code).set({players:[currentUser],estado:'aguardando',coins:10});
+}
+
+function matchmaking(){
+  salaAtual="rapida";
+  showNotificacao("Buscando jogador...");
+  db.ref('salas').orderByChild('estado').equalTo('aguardando').limitToFirst(1).get().then(snap=>{
+    if(snap.exists()){
+      const key=Object.keys(snap.val())[0];
+      db.ref('salas/'+key+'/players').once('value').then(pl=>{
+        let players=pl.val();
+        players.push(currentUser);
+        db.ref('salas/'+key).update({players,estado:'em-jogo'});
+        startPartida(players,key);
+      });
+    }else{
+      const code=Math.floor(1000+Math.random()*9000);
+      db.ref('salas/'+code).set({players:[currentUser],estado:'aguardando',coins:10});
+      showNotificacao('Sala criada, aguardando outro jogador...');
+    }
+  });
+}
+
+function startPartida(players,salaId){
+  const mesa=document.getElementById('mesa');
+  mesa.innerHTML="";
+  players.forEach(p=>{
+    const c=document.createElement('div'); c.className='card'; c.innerText=Math.floor(Math.random()*12)+1; mesa.appendChild(c);
+  });
+  showTruco(players[1]);
+}
+
+function showTruco(nome){
+  document.getElementById('popup-text').innerText=`${nome} pediu Truco!`;
+  document.getElementById('popup-truco').style.display='flex';
+}
+function respondeTruco(resposta){
+  document.getElementById('popup-truco').style.display='none';
+  currentCoins+=10;
+  document.getElementById('coin-count').innerText=currentCoins;
+  document.getElementById('drawer-coins').innerText=currentCoins;
+}
+
+document.getElementById('chat').classList.remove('hidden');
+function sendChat(){
+  const msg=document.getElementById('chat-msg').value.trim();
+  if(!msg) return;
+  const chatMessages=document.getElementById('chat-messages');
+  const el=document.createElement('div'); el.innerText=currentNome+": "+msg; chatMessages.appendChild(el);
+  document.getElementById('chat-msg').value=''; chatMessages.scrollTop=chatMessages.scrollHeight;
+}
+
+function showNotificacao(msg){
+  const n=document.getElementById('notificacao');
+  n.innerText=msg;
+  n.style.display='block';
+  setTimeout(()=>{n.style.display='none';},3000);
+}
+</script></body>
+</html>
