@@ -1,0 +1,2620 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#D4AF37">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Elohim Quest">
+<link rel="manifest" href="/manifest.json">
+<title>Elohim Quest</title>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6242236101242815" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
+
+<!-- ═══════════════════════════════════════════
+     GOOGLE ADSENSE — ca-pub-6242236101242815
+════════════════════════════════════════════ -->
+<style>
+:root {
+  --gold:#D4AF37; --gold-light:#FFD700; --gold-dark:#A07820;
+  --black:#0D0D0D; --surface:#161410; --surface2:#1E1A12; --surface3:#252015;
+  --white:#FFFFFF; --green:#00C853; --red:#D50000; --red-soft:#FF5252;
+  --muted:#888; --dim:#555; --orange:#FF6D00;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;min-height:100vh;min-height:100dvh;background:#0a0800;font-family:'Lato',sans-serif;color:var(--white);overflow:hidden}
+::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-track{background:var(--black)} ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px}
+
+#app{max-width:430px;min-height:100vh;min-height:100dvh;margin:0 auto;background:var(--surface);position:relative}
+.screen{width:100%;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;animation:fadeInUp .3s ease both}
+#screen-jogo{height:100vh;height:100dvh;min-height:unset}
+#screen-home{height:100vh;height:100dvh;min-height:unset;overflow:hidden}
+#screen-privacidade .static-content{overflow-y:auto;flex:1}
+.screen.hidden{display:none!important}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes popIn{0%{opacity:0;transform:scale(.65)}70%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+@keyframes pulseGold{0%,100%{box-shadow:0 0 16px #D4AF3755,0 0 32px #D4AF3722}50%{box-shadow:0 0 28px #D4AF3799,0 0 52px #D4AF3744}}
+@keyframes timerShrink{from{width:100%}to{width:0%}}
+@keyframes streakPop{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+/* TYPOGRAPHY */
+.gold-title{font-family:'Cinzel Decorative',serif;background:linear-gradient(135deg,var(--gold-dark) 0%,var(--gold-light) 35%,var(--gold) 55%,var(--gold-light) 75%,var(--gold-dark) 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3.5s linear infinite}
+
+/* BUTTONS */
+.btn-gold{display:block;width:100%;padding:15px 20px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light),var(--gold));background-size:200% auto;color:#0D0D0D;font-family:'Cinzel',serif;font-weight:700;font-size:15px;letter-spacing:1px;border:none;border-radius:11px;cursor:pointer;transition:background-position .4s,transform .15s;text-align:center}
+.btn-gold:hover{background-position:right center;transform:scale(1.02)}
+.btn-gold:active{transform:scale(.97)}
+.btn-gold:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-gold.pulse{animation:pulseGold 2.2s ease-in-out infinite}
+.btn-outline{display:block;width:100%;padding:13px 20px;background:transparent;color:var(--gold);font-family:'Cinzel',serif;font-weight:700;font-size:14px;letter-spacing:1px;border:1.5px solid rgba(212,175,55,.5);border-radius:11px;cursor:pointer;transition:border-color .2s,background .2s,transform .1s;text-align:center}
+.btn-outline:hover{border-color:var(--gold);background:rgba(212,175,55,.08)}
+.btn-outline:active{transform:scale(.97)}
+.btn-outline.active{background:rgba(212,175,55,.18);border-color:var(--gold);color:var(--gold-light)}
+
+/* INPUTS */
+.field{margin-bottom:14px}
+.field label{display:block;color:var(--gold);font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:1.5px;margin-bottom:6px}
+.field input{width:100%;padding:12px 14px;background:var(--surface2);border:1.5px solid rgba(212,175,55,.3);border-radius:8px;color:var(--white);font-family:'Lato',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold)}
+.field input::placeholder{color:#555}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0}
+.divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.4))}
+.divider-line.r{background:linear-gradient(to left,transparent,rgba(212,175,55,.4))}
+.divider-dot{color:var(--gold);font-size:10px}
+
+/* BADGE */
+.stat-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-family:'Cinzel',serif;font-size:13px;font-weight:700}
+
+/* ERROR */
+.error-box{background:rgba(213,0,0,.15);border:1px solid rgba(213,0,0,.5);border-radius:8px;padding:11px 14px;color:var(--red-soft);font-size:13px;margin-bottom:16px;display:none}
+.error-box.show{display:block}
+
+/* SCREEN HEADER */
+.screen-header{display:flex;align-items:center;gap:12px;padding:16px 18px;background:linear-gradient(180deg,#1a1400,var(--surface));border-bottom:1px solid rgba(212,175,55,.2)}
+.screen-header .back-btn{background:transparent;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:2px 6px;line-height:1}
+.screen-header .title{font-family:'Cinzel',serif;font-weight:700;font-size:18px;color:var(--gold);letter-spacing:1px}
+
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:all}
+.sheet{width:100%;max-width:430px;background:var(--surface2);border-top:2px solid rgba(212,175,55,.6);border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.6,1);display:flex;flex-direction:column;max-height:88vh;max-height:88dvh}
+.overlay.show .sheet{transform:translateY(0)}
+.popup-center{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .2s}
+.popup-center.show{opacity:1;pointer-events:all}
+.popup-box{background:var(--surface2);border-radius:20px;padding:28px 24px;width:88%;max-width:320px;text-align:center;border:2px solid #333;animation:popIn .4s ease both}
+
+/* ═══ LOADING ═══ */
+#screen-loading{background:radial-gradient(ellipse at center,#1a1200,var(--black));align-items:center;justify-content:center;gap:22px}
+.spinner-wrap{position:relative;width:88px;height:88px}
+.spinner-ring{position:absolute;inset:0;border:3px solid transparent;border-top-color:var(--gold);border-right-color:rgba(212,175,55,.3);border-radius:50%;animation:spin 1.1s linear infinite}
+.spinner-ring2{position:absolute;inset:14px;border:2px solid transparent;border-bottom-color:var(--gold-light);border-radius:50%;animation:spin 1.8s linear infinite reverse}
+.spinner-cross{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px}
+
+/* ═══ LOGIN / CADASTRO ═══ */
+.login-hero{background:radial-gradient(ellipse at center top,#2a1f00,var(--surface));padding:52px 30px 32px;text-align:center;border-bottom:1px solid rgba(212,175,55,.2)}
+.login-form{padding:28px 24px;flex:1;overflow:hidden}
+.form-title{color:var(--gold);font-family:'Cinzel',serif;font-size:16px;text-align:center;margin-bottom:20px}
+
+/* ═══ HOME ═══ */
+.home-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,#1a1400,var(--surface));border-bottom:1px solid rgba(212,175,55,.2)}
+.home-header .username{font-family:'Cinzel',serif;color:var(--gold);font-size:13px;font-weight:700}
+.home-header .header-right{display:flex;gap:8px;align-items:center}
+.avatar-btn{background:rgba(212,175,55,.15);border:2px solid rgba(212,175,55,.5);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+.home-hero{background:radial-gradient(ellipse at center,#2a1f00,var(--surface));padding:24px 20px;text-align:center;border-bottom:1px solid rgba(212,175,55,.15)}
+.nivel-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.5);border-radius:20px;padding:6px 16px;margin-top:12px;font-family:'Cinzel',serif;color:var(--gold);font-size:12px;font-weight:700}
+.home-btns{padding:16px 20px 24px;display:flex;flex-direction:column;gap:10px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* ═══ PERFIL MODAL ═══ */
+.perfil-handle{width:40px;height:4px;background:rgba(212,175,55,.3);border-radius:2px;margin:0 auto 20px}
+.progress-bar{background:#2a2a2a;border-radius:10px;height:10px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(to right,var(--gold-dark),var(--gold-light));border-radius:10px;transition:width .5s ease}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-card{background:var(--surface);border-radius:11px;padding:12px 8px;text-align:center;border-width:1px;border-style:solid}
+
+/* ═══ RANKING ═══ */
+.ranking-list{padding:14px;flex:1;overflow-y:auto}
+.rank-item{display:flex;align-items:center;gap:12px;border-radius:12px;padding:13px 15px;margin-bottom:8px;border-width:1px;border-style:solid;animation:fadeInUp .3s ease both}
+
+/* ═══ SELEÇÃO DE MODO/FILTRO ═══ */
+#screen-selecao{overflow:hidden}
+.selecao-header{background:linear-gradient(180deg,#1a1400,var(--surface));padding:16px 18px;border-bottom:1px solid rgba(212,175,55,.2);display:flex;align-items:center;gap:12px}
+.selecao-body{flex:1;padding:20px;overflow:hidden;display:flex;flex-direction:column;gap:18px}
+.sel-section-title{font-family:'Cinzel',serif;color:var(--gold);font-size:13px;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.modo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modo-card{background:var(--surface2);border:1.5px solid rgba(212,175,55,.25);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px}
+.modo-card:hover{border-color:var(--gold);background:rgba(212,175,55,.08)}
+.modo-card.selected{border-color:var(--gold);background:rgba(212,175,55,.15);box-shadow:0 0 12px rgba(212,175,55,.2)}
+.modo-card .modo-icon{font-size:28px}
+.modo-card .modo-nome{font-family:'Cinzel',serif;color:var(--gold);font-size:13px;font-weight:700}
+.modo-card .modo-desc{color:var(--muted);font-size:11px;line-height:1.4}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips-scroll{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips-scroll::-webkit-scrollbar{display:none}
+.chip{padding:7px 14px;border-radius:20px;border:1.5px solid rgba(212,175,55,.3);background:transparent;color:var(--muted);font-family:'Cinzel',serif;font-size:12px;cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--gold);color:var(--gold)}
+.chip.selected{border-color:var(--gold);background:rgba(212,175,55,.18);color:var(--gold-light)}
+.chip.all{border-color:rgba(212,175,55,.5);color:var(--gold)}
+.chip.all.selected{background:rgba(212,175,55,.25)}
+
+/* ═══ JOGO ═══ */
+.jogo-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:linear-gradient(180deg,#1a1400,var(--surface));border-bottom:1px solid rgba(212,175,55,.2);flex-shrink:0;gap:8px}
+.jogo-topbar .ornament{color:var(--gold);opacity:.5;font-size:11px}
+
+/* Timer bar */
+.timer-wrap{flex-shrink:0;padding:0 16px 8px}
+.timer-bar-bg{background:rgba(212,175,55,.15);border-radius:4px;height:5px;overflow:hidden;position:relative}
+.timer-bar-fill{height:100%;border-radius:4px;background:linear-gradient(to right,var(--gold-dark),var(--gold-light));transition:background .5s}
+.timer-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.timer-secs{font-family:'Cinzel',serif;font-size:12px;color:var(--gold);font-weight:700}
+.timer-mode-badge{font-family:'Cinzel',serif;font-size:11px;padding:2px 10px;border-radius:10px;font-weight:700}
+
+/* Streak */
+.streak-wrap{display:flex;align-items:center;gap:5px}
+.streak-badge{font-family:'Cinzel',serif;font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px;background:rgba(255,109,0,.2);border:1px solid rgba(255,109,0,.5);color:var(--orange);display:none}
+.streak-badge.show{display:flex;align-items:center;gap:4px;animation:streakPop .3s ease}
+
+/* Pergunta */
+.jogo-content{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.question-box{background:rgba(30,26,18,.9);border:1px solid rgba(212,175,55,.25);border-radius:14px;padding:16px 14px;text-align:center;flex-shrink:0}
+.question-meta{display:flex;justify-content:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.question-num{color:var(--gold);font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;font-weight:700}
+.cat-chip{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.3);color:var(--muted);font-family:'Cinzel',serif}
+.diff-chip{font-size:10px;padding:2px 8px;border-radius:10px;font-family:'Cinzel',serif;font-weight:700}
+.diff-facil{background:rgba(0,200,83,.15);border:1px solid rgba(0,200,83,.3);color:var(--green)}
+.diff-medio{background:rgba(255,193,7,.15);border:1px solid rgba(255,193,7,.3);color:#FFC107}
+.diff-dificil{background:rgba(213,0,0,.15);border:1px solid rgba(213,0,0,.3);color:var(--red-soft)}
+.question-text{font-family:'Cinzel',serif;color:var(--white);font-size:15px;line-height:1.5;font-weight:700}
+.opcoes{display:flex;flex-direction:column;gap:8px}
+.opcao-btn{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid #3a3a3a;border-radius:11px;padding:12px 14px;cursor:pointer;text-align:left;transition:background .2s,border-color .2s,transform .1s;width:100%}
+.opcao-btn:hover:not(:disabled){border-color:rgba(212,175,55,.5);background:rgba(212,175,55,.06)}
+.opcao-btn:active:not(:disabled){transform:scale(.98)}
+.opcao-btn:disabled{cursor:default}
+.opcao-btn.correct{background:rgba(0,200,83,.12)!important;border-color:var(--green)!important;border-width:1.5px}
+.opcao-btn.wrong{background:rgba(213,0,0,.12)!important;border-color:var(--red)!important;border-width:1.5px}
+.opcao-letter{font-family:'Cinzel',serif;color:var(--gold);font-size:12px;font-weight:700;min-width:18px;flex-shrink:0}
+.opcao-text{font-size:13px;color:var(--white);line-height:1.3;flex:1}
+.opcao-btn.correct .opcao-text{color:var(--green)}
+.opcao-btn.wrong .opcao-text{color:var(--red-soft)}
+
+/* Resposta certa (mostrada ao errar) */
+.resposta-certa-box{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.4);border-radius:10px;padding:10px 14px;display:none;flex-shrink:0}
+.resposta-certa-box.show{display:block}
+.resposta-certa-label{font-family:'Cinzel',serif;font-size:10px;color:var(--green);letter-spacing:1.5px;margin-bottom:4px}
+.resposta-certa-text{font-size:14px;color:var(--white);font-weight:700}
+
+/* Maratona vidas */
+.vidas-wrap{display:flex;gap:4px;align-items:center}
+.vida{font-size:14px;transition:opacity .3s}
+.vida.perdida{opacity:.2;filter:grayscale(1)}
+
+/* Footer jogo */
+.jogo-footer{display:flex;gap:10px;padding:10px 14px;padding-bottom:max(14px, env(safe-area-inset-bottom, 14px));border-top:1px solid rgba(212,175,55,.15);background:var(--surface);flex-shrink:0;justify-content:center;align-items:center}
+.btn-sair-jogo{width:130px;padding:13px;border-radius:10px;border:1.5px solid rgba(212,175,55,.5);background:transparent;color:var(--gold);font-family:'Cinzel',serif;font-weight:700;font-size:13px;cursor:pointer;text-align:center}
+.btn-proxima-jogo{width:180px;padding:13px;border-radius:10px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));border:none;color:#0D0D0D;font-family:'Cinzel',serif;font-weight:700;font-size:14px;cursor:pointer;text-align:center}
+
+/* ═══ POPUP ═══ */
+.popup-box .popup-emoji{font-size:48px;display:block;margin-bottom:10px}
+.popup-box .popup-title{font-family:'Cinzel',serif;font-size:19px;font-weight:700;margin-bottom:6px}
+.popup-box .popup-pray{font-size:26px;display:block;margin-bottom:8px}
+.popup-box .popup-msg{color:#aaa;font-size:13px;line-height:1.6;margin-bottom:6px}
+.popup-resposta{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.35);border-radius:8px;padding:8px 12px;margin:10px 0 16px;display:none}
+.popup-resposta.show{display:block}
+.popup-resposta-label{font-family:'Cinzel',serif;font-size:10px;color:var(--green);letter-spacing:1px;margin-bottom:3px}
+.popup-resposta-text{font-size:13px;color:var(--white);font-weight:700}
+.popup-streak{font-family:'Cinzel',serif;font-size:13px;color:var(--orange);margin-bottom:12px;display:none}
+.popup-streak.show{display:block}
+
+/* Game over */
+.gameover-box{text-align:center;padding:32px 24px}
+.gameover-icon{font-size:56px;display:block;margin-bottom:12px}
+.gameover-title{font-family:'Cinzel Decorative',serif;font-size:22px;background:linear-gradient(135deg,var(--gold-dark),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:20px}
+.gameover-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.go-stat{background:var(--surface2);border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(212,175,55,.2)}
+.go-stat-val{font-family:'Cinzel',serif;font-size:24px;font-weight:700;display:block}
+.go-stat-lbl{font-size:12px;color:var(--muted);margin-top:3px;display:block}
+
+/* STATIC */
+.static-content{padding:22px;flex:1;overflow:hidden}
+.loading-inline{text-align:center;padding:40px;color:var(--muted);font-family:'Cinzel',serif;font-size:14px}
+.center-empty{text-align:center;padding:48px 20px}
+
+
+/* EDIT PROFILE POPUP */
+
+/* ═══ DUELO ═══ */
+@keyframes spin-ring{to{transform:rotate(360deg)}}
+@keyframes countdown-pop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+@keyframes avatar-enter{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+@keyframes duelo-flash{0%,100%{background:transparent}50%{background:rgba(212,175,55,.08)}}
+
+#screen-duelo{background:var(--surface)}
+.duelo-header{display:flex;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(180deg,#1a1400,var(--surface));border-bottom:1px solid rgba(212,175,55,.2);flex-shrink:0}
+
+/* Sala de espera */
+.duelo-sala{display:flex;flex-direction:column;align-items:center;padding:28px 24px;gap:0;flex:1}
+.duelo-vs-row{display:flex;align-items:center;justify-content:center;gap:20px;width:100%;margin-bottom:24px}
+.duelo-avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;animation:avatar-enter .4s ease both}
+.duelo-avatar-wrap.oponente{animation-delay:.15s}
+.duelo-avatar-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;transition:all .4s}
+.duelo-avatar-circle.eu{background:rgba(212,175,55,.18);border:2px solid var(--gold)}
+.duelo-avatar-circle.oponente-wait{background:rgba(100,100,100,.15);border:2px solid #555;filter:grayscale(1)}
+.duelo-avatar-circle.oponente-ready{background:rgba(50,120,255,.18);border:2px solid #4a90e2}
+.spinner-duelo{position:absolute;inset:-4px;border:2.5px solid transparent;border-top-color:#777;border-radius:50%;animation:spin-ring 1s linear infinite}
+.duelo-avatar-nome{font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:var(--gold);text-align:center;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.duelo-avatar-sub{font-size:11px;color:var(--muted);text-align:center}
+.duelo-vs-label{font-family:'Cinzel Decorative',serif;font-size:22px;color:var(--gold);opacity:.7}
+.duelo-link-box{background:var(--surface2);border:1.5px dashed rgba(212,175,55,.4);border-radius:12px;padding:14px 16px;width:100%;margin-bottom:16px;text-align:center}
+.duelo-link-label{font-family:'Cinzel',serif;font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-bottom:6px}
+.duelo-link-text{font-size:12px;color:var(--gold);word-break:break-all;line-height:1.4;margin-bottom:10px}
+.duelo-waiting-text{display:flex;align-items:center;gap:6px;justify-content:center;color:var(--muted);font-size:13px;font-style:italic}
+.duelo-waiting-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse-dot 1.2s ease-in-out infinite}
+.duelo-waiting-dot:nth-child(2){animation-delay:.2s}
+.duelo-waiting-dot:nth-child(3){animation-delay:.4s}
+
+/* Countdown */
+.duelo-countdown-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:400;flex-direction:column;gap:12px}
+.duelo-countdown-num{font-family:'Cinzel Decorative',serif;font-size:96px;color:var(--gold);animation:countdown-pop .5s ease both;line-height:1}
+.duelo-countdown-go{font-family:'Cinzel Decorative',serif;font-size:56px;color:var(--green);animation:countdown-pop .3s ease both}
+
+/* Jogo duelo */
+.duelo-scorebar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:linear-gradient(180deg,#1a1400,var(--surface));border-bottom:1px solid rgba(212,175,55,.2);flex-shrink:0;gap:8px}
+.duelo-score-player{display:flex;flex-direction:column;align-items:center;min-width:70px}
+.duelo-score-nome{font-family:'Cinzel',serif;font-size:10px;color:var(--muted);letter-spacing:1px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.duelo-score-pts{font-family:'Cinzel',serif;font-size:22px;font-weight:700}
+.duelo-score-pts.eu-pts{color:var(--gold)}
+.duelo-score-pts.op-pts{color:#4a90e2}
+.duelo-score-divider{font-family:'Cinzel',serif;font-size:14px;color:var(--dim)}
+.duelo-respondeu-badge{font-size:10px;padding:2px 8px;border-radius:8px;font-family:'Cinzel',serif;font-weight:700;margin-top:3px;min-height:18px}
+
+/* Resultado final */
+.duelo-resultado-box{padding:28px 24px;text-align:center}
+.duelo-resultado-vs{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px}
+.duelo-res-card{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.duelo-res-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px}
+.duelo-res-nome{font-family:'Cinzel',serif;font-size:12px;font-weight:700}
+.duelo-res-pts{font-family:'Cinzel',serif;font-size:28px;font-weight:700}
+.duelo-res-stats{font-size:11px;color:var(--muted);margin-top:2px}
+.duelo-winner-label{font-family:'Cinzel Decorative',serif;font-size:18px;margin-bottom:16px}
+
+/* ═══ CONQUISTAS ═══ */
+@keyframes conquista-pop{0%{opacity:0;transform:translateY(40px) scale(.8)}60%{transform:translateY(-6px) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes conquista-saida{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-30px)}}
+.conquista-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1a1400,#2a1f00);border:2px solid var(--gold);border-radius:16px;padding:14px 20px;display:flex;align-items:center;gap:12px;z-index:500;animation:conquista-pop .5s ease both;max-width:340px;width:90%}
+.conquista-toast.saindo{animation:conquista-saida .4s ease forwards}
+.conquista-toast .ct-icon{font-size:28px;flex-shrink:0}
+.conquista-toast .ct-body{flex:1}
+.conquista-toast .ct-titulo{font-family:'Cinzel',serif;color:var(--gold);font-size:11px;letter-spacing:1.5px;font-weight:700}
+.conquista-toast .ct-nome{font-family:'Cinzel',serif;color:var(--white);font-size:14px;font-weight:700;margin-top:2px}
+.conquista-toast .ct-desc{color:var(--muted);font-size:12px;margin-top:1px}
+.conquistas-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}
+.conquista-card{background:var(--surface2);border-radius:12px;padding:14px 10px;text-align:center;border:1px solid #333;transition:border-color .2s}
+.conquista-card.desbloqueada{border-color:rgba(212,175,55,.5);background:rgba(212,175,55,.06)}
+.conquista-card .cq-icon{font-size:26px;display:block;margin-bottom:6px;filter:grayscale(1);opacity:.4;transition:filter .3s,opacity .3s}
+.conquista-card.desbloqueada .cq-icon{filter:none;opacity:1}
+.conquista-card .cq-nome{font-family:'Cinzel',serif;font-size:11px;font-weight:700;color:var(--muted);line-height:1.3}
+.conquista-card.desbloqueada .cq-nome{color:var(--gold)}
+.conquista-card .cq-desc{font-size:11px;color:var(--dim);margin-top:3px;line-height:1.3}
+
+/* ═══ DESAFIO DIÁRIO ═══ */
+.daily-banner{margin:14px 14px 4px;background:linear-gradient(135deg,rgba(212,175,55,.12),rgba(212,175,55,.06));border:1.5px solid rgba(212,175,55,.4);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .2s}
+.daily-banner:hover{background:linear-gradient(135deg,rgba(212,175,55,.2),rgba(212,175,55,.1))}
+.daily-banner .db-icon{font-size:28px;flex-shrink:0}
+.daily-banner .db-body{flex:1}
+.daily-banner .db-title{font-family:'Cinzel',serif;color:var(--gold);font-size:13px;font-weight:700}
+.daily-banner .db-sub{color:var(--muted);font-size:12px;margin-top:2px}
+.daily-banner .db-badge{font-family:'Cinzel',serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:10px;white-space:nowrap}
+.daily-progress{display:flex;gap:5px;margin-top:6px}
+.daily-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(212,175,55,.4);background:transparent;transition:background .3s}
+.daily-dot.feito{background:var(--gold);border-color:var(--gold)}
+.streak-daily-wrap{display:flex;align-items:center;gap:6px;margin:0 14px 10px;background:rgba(255,109,0,.1);border:1px solid rgba(255,109,0,.3);border-radius:10px;padding:8px 12px}
+.streak-daily-icon{font-size:18px}
+.streak-daily-text{font-family:'Cinzel',serif;color:var(--orange);font-size:12px;font-weight:700}
+
+/* ═══ VERSÍCULO ═══ */
+.versiculo-box{background:rgba(212,175,55,.07);border:1px solid rgba(212,175,55,.25);border-radius:10px;padding:10px 14px;margin:10px 0 14px;display:none}
+.versiculo-box.show{display:block}
+.versiculo-ref{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:1.5px;margin-bottom:4px}
+.versiculo-texto{font-size:13px;color:#ddd;line-height:1.6;font-style:italic}
+
+/* ═══ XP FLOAT ═══ */
+@keyframes xpFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(1.2)}}
+.xp-float{position:fixed;font-family:'Cinzel',serif;font-weight:700;font-size:18px;color:var(--gold);pointer-events:none;z-index:999;animation:xpFloat .9s ease forwards}
+
+/* ═══ HISTÓRICO ═══ */
+.historico-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:8px;border:1px solid #2a2a2a}
+.hist-modo-badge{font-family:'Cinzel',serif;font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOADING -->
+<div id="screen-loading" class="screen">
+  <div class="spinner-wrap"><div class="spinner-ring"></div><div class="spinner-ring2"></div><div class="spinner-cross">✝️</div></div>
+  <span class="gold-title" style="font-size:24px;letter-spacing:3px">ELOHIM QUEST</span>
+  <span style="color:var(--muted);font-size:14px">Carregando sua jornada…</span>
+  <span style="position:absolute;bottom:36px;color:var(--dim);font-size:12px;font-style:italic;text-align:center;padding:0 40px">"A tua palavra é lâmpada para os meus pés" — Sl 119:105</span>
+</div>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen hidden">
+  <div class="login-hero">
+    <span style="font-size:52px;display:block;margin-bottom:10px;animation:float 3.2s ease-in-out infinite">⚔️</span>
+    <span class="gold-title" style="font-size:28px;letter-spacing:2px">ELOHIM QUEST</span>
+    <span style="color:rgba(212,175,55,.4);letter-spacing:10px;font-size:10px;margin-top:4px;display:block">✦ ✦ ✦</span>
+    <p style="color:#aaa;font-size:13px;margin-top:8px;font-style:italic">Uma jornada com Deus começa aqui.</p>
+  </div>
+  <div class="login-form">
+    <p class="form-title">Entrar na Jornada</p>
+    <div id="login-error" class="error-box"></div>
+    <div class="field"><label>E-MAIL</label><input type="email" id="login-email" placeholder="seu@email.com"></div>
+    <div class="field"><label>SENHA</label><input type="password" id="login-senha" placeholder="••••••••"></div>
+    <div style="height:8px"></div>
+    <button class="btn-gold" id="btn-entrar">⚔️  ENTRAR</button>
+    <div style="height:11px"></div>
+    <button class="btn-outline" id="btn-ir-cadastro">📜 Criar Conta</button>
+  </div>
+</div>
+
+<!-- CADASTRO -->
+<div id="screen-cadastro" class="screen hidden">
+  <div class="login-hero" style="padding-top:40px;padding-bottom:22px">
+    <span class="gold-title" style="font-size:22px;letter-spacing:2px">ELOHIM QUEST</span>
+    <p style="color:#aaa;font-size:13px;margin-top:6px">Crie sua conta e comece a jornada</p>
+  </div>
+  <div class="login-form">
+    <div id="cad-error" class="error-box"></div>
+    <div class="field"><label>NOME</label><input type="text" id="cad-nome" placeholder="Seu nome completo" maxlength="20"></div>
+    <div class="field"><label>@ USUÁRIO</label><input type="text" id="cad-user" placeholder="guerreiro_da_fe" maxlength="10"></div>
+    <div class="field"><label>E-MAIL</label><input type="email" id="cad-email" placeholder="seu@email.com"></div>
+    <div class="field"><label>SENHA</label><input type="password" id="cad-senha" placeholder="Mínimo 6 caracteres"></div>
+    <div class="field"><label>CONFIRMAR SENHA</label><input type="password" id="cad-confirm" placeholder="Repita a senha"></div>
+    <div style="height:8px"></div>
+    <button class="btn-gold" id="btn-cadastrar">🙏 CADASTRAR</button>
+    <div style="height:11px"></div>
+    <button class="btn-outline" id="btn-ir-login">← Já tenho conta</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="screen hidden">
+  <div class="home-header">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="username" id="home-username">@guerreiro</span>
+    </div>
+    <div class="header-right">
+      <div id="home-badge-acertos" class="stat-badge"></div>
+      <div id="home-badge-erros" class="stat-badge"></div>
+      <button class="avatar-btn" id="btn-avatar">👤</button>
+    </div>
+  </div>
+  <div class="home-hero">
+    <span class="gold-title" style="font-size:30px;display:block;line-height:1.1;letter-spacing:2px">ELOHIM<br>QUEST</span>
+    <p style="color:#aaa;font-size:13px;margin-top:8px;font-style:italic">Uma jornada com Deus começa aqui.</p>
+    <div class="nivel-badge" id="home-nivel-badge">🏅  Nível 1 — Iniciante</div>
+  </div>
+  <div class="home-btns">
+    <!-- Streak diário -->
+    <div id="streak-daily-wrap" class="streak-daily-wrap" style="display:none">
+      <span class="streak-daily-icon">🔥</span>
+      <span class="streak-daily-text" id="streak-daily-text">3 dias seguidos!</span>
+    </div>
+    <!-- Desafio diário -->
+    <div class="daily-banner" id="btn-daily" onclick="abrirDesafioDiario()">
+      <span class="db-icon">📅</span>
+      <div class="db-body">
+        <p class="db-title">Desafio do Dia</p>
+        <p class="db-sub" id="daily-sub">5 perguntas especiais · Recompensa exclusiva</p>
+        <div class="daily-progress" id="daily-progress"></div>
+      </div>
+      <span class="db-badge" id="daily-badge" style="background:rgba(212,175,55,.2);color:var(--gold);border:1px solid rgba(212,175,55,.4)">JOGAR</span>
+    </div>
+    <button class="btn-gold pulse" id="btn-jogar" style="font-size:17px;padding:17px">⚔️  JOGAR</button>
+    <button class="btn-outline" id="btn-duelo" style="border-color:rgba(212,175,55,.6);color:var(--gold-light)">⚔️  Duelo Bíblico</button>
+    <button class="btn-outline" id="btn-ranking">🏆  Ranking</button>
+    <button class="btn-outline" id="btn-conquistas">🏅  Conquistas</button>
+    <button class="btn-outline" id="btn-sobre">📖  Sobre</button>
+    <button class="btn-outline" id="btn-privacidade">🔒  Privacidade</button>
+  </div>
+</div>
+
+<!-- SELEÇÃO MODO + FILTROS -->
+<div id="screen-selecao" class="screen hidden">
+  <div class="selecao-header">
+    <button class="back-btn" id="btn-sel-back" style="background:transparent;border:none;color:var(--gold);font-size:22px;cursor:pointer">←</button>
+    <span style="font-family:'Cinzel',serif;font-weight:700;font-size:17px;color:var(--gold);letter-spacing:1px">⚔️  Configurar Jogo</span>
+  </div>
+  <div class="selecao-body">
+    <!-- Modo -->
+    <div>
+      <p class="sel-section-title">MODO DE JOGO</p>
+      <div class="modo-grid">
+        <div class="modo-card selected" data-modo="rapido" id="modo-rapido" onclick="selecionarModo('rapido')">
+          <span class="modo-icon">⚡</span>
+          <span class="modo-nome">RÁPIDO</span>
+          <span class="modo-desc">10 perguntas com timer de 15s cada</span>
+        </div>
+        <div class="modo-card" data-modo="maratona" id="modo-maratona" onclick="selecionarModo('maratona')">
+          <span class="modo-icon">🏃</span>
+          <span class="modo-nome">MARATONA</span>
+          <span class="modo-desc">Até 3 erros, sem limite de perguntas</span>
+        </div>
+        <div class="modo-card" data-modo="estudo" id="modo-estudo" onclick="selecionarModo('estudo')" style="grid-column:span 2">
+          <span class="modo-icon">📖</span>
+          <span class="modo-nome">ESTUDO</span>
+          <span class="modo-desc">Sem timer · Com dicas e explicações · Aprenda no seu ritmo</span>
+        </div>
+      </div>
+    </div>
+    <!-- Dificuldade -->
+    <div>
+      <p class="sel-section-title">DIFICULDADE</p>
+      <div class="chips" id="chips-dificuldade">
+        <button class="chip all selected" onclick="toggleChip(this,'dificuldade')">Todas</button>
+      </div>
+    </div>
+    <!-- Categoria -->
+    <div>
+      <p class="sel-section-title">CATEGORIA</p>
+      <div class="chips-scroll" id="chips-categoria">
+        <button class="chip all selected" onclick="toggleChip(this,'categoria')">Todas</button>
+      </div>
+    </div>
+    <button class="btn-gold" id="btn-iniciar-jogo" style="margin-top:auto">⚔️  INICIAR</button>
+  </div>
+</div>
+
+<!-- JOGO -->
+<div id="screen-jogo" class="screen hidden">
+  <div class="jogo-topbar">
+    <div class="streak-wrap">
+      <div id="jogo-badge-acertos" class="stat-badge"></div>
+      <div class="streak-badge" id="streak-badge">🔥 <span id="streak-num">0</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="ornament" style="color:var(--gold);opacity:.5;font-size:11px">✦</span>
+      <div id="vidas-wrap" class="vidas-wrap" style="display:none"></div>
+    </div>
+    <div id="jogo-badge-erros" class="stat-badge"></div>
+  </div>
+  <!-- Timer -->
+  <div class="timer-wrap" id="timer-wrap">
+    <div class="timer-label">
+      <span class="timer-secs" id="timer-secs">15</span>
+      <span class="timer-mode-badge" id="timer-mode-badge"></span>
+    </div>
+    <div class="timer-bar-bg"><div class="timer-bar-fill" id="timer-bar" style="width:100%"></div></div>
+  </div>
+  <div class="jogo-content" id="jogo-content">
+    <div class="loading-inline">Carregando desafios…</div>
+  </div>
+  <div class="jogo-footer">
+    <button class="btn-sair-jogo" id="btn-jogo-sair">⬅  Sair</button>
+    <button class="btn-proxima-jogo" id="btn-proxima">Próxima ➡</button>
+  </div>
+</div>
+
+<!-- RANKING -->
+<div id="screen-ranking" class="screen hidden">
+  <div class="screen-header">
+    <button class="back-btn" id="btn-ranking-back">←</button>
+    <span class="title">🏆  RANKING</span>
+  </div>
+  <div class="ranking-list" id="ranking-list"><div class="loading-inline">Carregando…</div></div>
+</div>
+
+<!-- SOBRE -->
+<div id="screen-sobre" class="screen hidden">
+  <div class="screen-header"><button class="back-btn" id="btn-sobre-back">←</button><span class="title">📖  SOBRE</span></div>
+  <div class="static-content">
+    <div style="text-align:center;margin-bottom:18px">
+      <span style="font-size:50px;display:block;margin-bottom:12px;animation:float 3.2s ease-in-out infinite">✝️</span>
+      <span class="gold-title" style="font-size:24px;letter-spacing:2px">ELOHIM QUEST</span>
+      <p style="color:var(--gold);font-style:italic;font-size:14px;margin-top:6px">Uma jornada com Deus começa aqui.</p>
+    </div>
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+    <p style="color:#ccc;line-height:1.75;font-size:14px;margin-bottom:12px"><span style="color:var(--gold-light);font-weight:700">Elohim Quest</span> é um quiz bíblico interativo criado para desafiar e fortalecer o conhecimento das Escrituras Sagradas.</p>
+    <p style="color:#ccc;line-height:1.75;font-size:14px">Responda perguntas sobre o Antigo e Novo Testamento, suba de nível e dispute no ranking global!</p>
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+    <p style="color:#ccc;font-style:italic;font-size:14px;line-height:1.7;text-align:center">"Lâmpada para os meus pés é a tua palavra."<br><span style="color:var(--gold);font-weight:700">— Salmos 119:105</span></p>
+  </div>
+</div>
+
+<!-- PRIVACIDADE -->
+<div id="screen-privacidade" class="screen hidden">
+  <div class="screen-header"><button class="back-btn" id="btn-priv-back">←</button><span class="title">🔒  PRIVACIDADE</span></div>
+  <div class="static-content" style="color:#ccc;font-size:14px;line-height:1.8;overflow-y:auto">
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:17px;font-weight:700;margin-bottom:4px">Política de Privacidade</p>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:16px">Última atualização: Março de 2025</p>
+
+    <p style="margin-bottom:14px">O <span style="color:var(--gold-light);font-weight:700">Elohim Quest</span> valoriza e respeita a privacidade de seus usuários. Esta política explica como coletamos, usamos e protegemos suas informações.</p>
+
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:0 0 8px">1. DADOS COLETADOS</p>
+    <p style="margin-bottom:8px">Coletamos as seguintes informações ao criar sua conta:</p>
+    <ul style="padding-left:18px;margin-bottom:14px">
+      <li style="margin-bottom:6px">Nome e nome de usuário (@)</li>
+      <li style="margin-bottom:6px">Endereço de e-mail</li>
+      <li style="margin-bottom:6px">Estatísticas de jogo (acertos, erros, nível)</li>
+      <li>Data de criação e última alteração de perfil</li>
+    </ul>
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:0 0 8px">2. USO DOS DADOS</p>
+    <p style="margin-bottom:14px">Seus dados são utilizados exclusivamente para:</p>
+    <ul style="padding-left:18px;margin-bottom:14px">
+      <li style="margin-bottom:6px">Personalizar sua experiência no app</li>
+      <li style="margin-bottom:6px">Exibir seu progresso e ranking</li>
+      <li style="margin-bottom:6px">Manter sua conta ativa e segura</li>
+      <li>Melhorar as funcionalidades do app</li>
+    </ul>
+
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:0 0 8px">3. GOOGLE FIREBASE</p>
+    <p style="margin-bottom:14px">Os dados são armazenados com segurança no <span style="color:var(--gold-light);font-weight:700">Google Firebase</span>, plataforma certificada com os mais altos padrões de segurança (ISO 27001, SOC 1/2/3). Não vendemos, alugamos nem compartilhamos seus dados pessoais com terceiros.</p>
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:0 0 8px">4. GOOGLE ANALYTICS</p>
+    <p style="margin-bottom:14px">Utilizamos o <span style="color:var(--gold-light);font-weight:700">Firebase Analytics</span> para entender como os usuários interagem com o app. Os dados coletados são anônimos e agregados, como número de sessões, telas visitadas e eventos de jogo. Nenhuma informação pessoal identificável é enviada ao Analytics.</p>
+
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:0 0 8px">5. ANÚNCIOS — GOOGLE ADSENSE</p>
+    <p style="margin-bottom:8px">O <span style="color:var(--gold-light);font-weight:700">Elohim Quest</span> utiliza o <strong style="color:#fff">Google AdSense</strong> para exibir anúncios. O Google pode usar cookies e tecnologias semelhantes para exibir anúncios personalizados com base em suas visitas anteriores a este e outros sites.</p>
+    <p style="margin-bottom:8px">Os anúncios exibidos podem ser personalizados de acordo com seus interesses. Você pode optar por não receber anúncios personalizados acessando:</p>
+    <p style="color:var(--gold);margin-bottom:14px">➤ adssettings.google.com</p>
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:0 0 8px">6. COOKIES</p>
+    <p style="margin-bottom:8px">Utilizamos cookies para:</p>
+    <ul style="padding-left:18px;margin-bottom:14px">
+      <li style="margin-bottom:6px">Manter sua sessão de login ativa</li>
+      <li style="margin-bottom:6px">Lembrar suas preferências no app</li>
+      <li style="margin-bottom:6px">Exibir anúncios relevantes via Google AdSense</li>
+      <li>Coletar dados anônimos de uso via Firebase Analytics</li>
+    </ul>
+    <p style="margin-bottom:14px">Ao clicar em <strong style="color:var(--gold)">Aceitar</strong> no banner de cookies, você consente com o uso de cookies conforme descrito acima. Você pode revogar esse consentimento a qualquer momento limpando os dados do navegador.</p>
+
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:0 0 8px">7. SEUS DIREITOS</p>
+    <ul style="padding-left:18px;margin-bottom:14px">
+      <li style="margin-bottom:6px">Acessar os dados que temos sobre você</li>
+      <li style="margin-bottom:6px">Solicitar a correção de dados incorretos</li>
+      <li style="margin-bottom:6px">Solicitar a exclusão da sua conta e dados</li>
+      <li>Revogar o consentimento de cookies a qualquer momento</li>
+    </ul>
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:0 0 8px">8. CRIANÇAS</p>
+    <p style="margin-bottom:14px">O Elohim Quest não é direcionado a crianças menores de 13 anos e não coletamos intencionalmente dados de menores.</p>
+
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:0 0 8px">9. CONTATO</p>
+    <p style="margin-bottom:20px">Para dúvidas sobre esta política ou para solicitar exclusão de dados, entre em contato pelo e-mail do desenvolvedor informado na Play Store ou no site.</p>
+
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+    <p style="color:var(--dim);font-size:12px;text-align:center">© 2025 Elohim Quest · Todos os direitos reservados</p>
+  </div>
+</div>
+
+<!-- DUELO -->
+<div id="screen-duelo" class="screen hidden">
+  <!-- Header -->
+  <div class="duelo-header">
+    <button class="back-btn" id="btn-duelo-back" style="background:transparent;border:none;color:var(--gold);font-size:22px;cursor:pointer">←</button>
+    <span style="font-family:'Cinzel',serif;font-weight:700;font-size:17px;color:var(--gold);letter-spacing:1px">⚔️  Duelo Bíblico</span>
+  </div>
+
+  <!-- Painel lobby (aguardando oponente) -->
+  <div id="duelo-lobby" class="duelo-sala">
+    <p style="font-family:'Cinzel',serif;color:var(--gold);font-size:13px;letter-spacing:1.5px;margin-bottom:20px">SALA DE DUELO</p>
+
+    <!-- Avatares VS -->
+    <div class="duelo-vs-row">
+      <div class="duelo-avatar-wrap">
+        <div class="duelo-avatar-circle eu" id="duelo-av-eu">👤</div>
+        <span class="duelo-avatar-nome" id="duelo-nome-eu">Você</span>
+        <span class="duelo-avatar-sub">Criador</span>
+      </div>
+      <span class="duelo-vs-label">VS</span>
+      <div class="duelo-avatar-wrap oponente">
+        <div class="duelo-avatar-circle oponente-wait" id="duelo-av-op">
+          👤
+          <div class="spinner-duelo" id="duelo-spinner-op"></div>
+        </div>
+        <span class="duelo-avatar-nome" id="duelo-nome-op">???</span>
+        <span class="duelo-avatar-sub" id="duelo-sub-op">Aguardando…</span>
+      </div>
+    </div>
+
+    <!-- Link de convite -->
+    <div class="duelo-link-box" id="duelo-link-box">
+      <p class="duelo-link-label">LINK DE CONVITE</p>
+      <p class="duelo-link-text" id="duelo-link-text">Gerando link…</p>
+      <button class="btn-outline" id="btn-copiar-link" style="padding:10px 16px;font-size:12px">📋  Copiar Link</button>
+    </div>
+
+    <!-- Esperando -->
+    <div class="duelo-waiting-text" id="duelo-waiting-msg">
+      <div class="duelo-waiting-dot"></div>
+      <div class="duelo-waiting-dot"></div>
+      <div class="duelo-waiting-dot"></div>
+      <span style="margin-left:4px">Esperando o irmão(a)…</span>
+    </div>
+
+    <button class="btn-outline" id="btn-duelo-cancelar-sala" style="margin-top:auto;width:100%;border-color:rgba(213,0,0,.4);color:#FF5252">Cancelar Sala</button>
+  </div>
+
+  <!-- Painel jogo duelo -->
+  <div id="duelo-jogo" style="display:none;flex-direction:column;flex:1;height:100%">
+    <!-- Placar -->
+    <div class="duelo-scorebar">
+      <div class="duelo-score-player">
+        <span class="duelo-score-nome" id="dscore-nome-eu">Você</span>
+        <span class="duelo-score-pts eu-pts" id="dscore-pts-eu">0</span>
+        <span class="duelo-respondeu-badge" id="dscore-badge-eu"></span>
+      </div>
+      <div style="text-align:center">
+        <span class="duelo-score-divider" id="dscore-pergs" style="font-size:11px;color:var(--muted)">P 1/10</span>
+      </div>
+      <div class="duelo-score-player" style="align-items:flex-end">
+        <span class="duelo-score-nome" id="dscore-nome-op">Oponente</span>
+        <span class="duelo-score-pts op-pts" id="dscore-pts-op">0</span>
+        <span class="duelo-respondeu-badge" id="dscore-badge-op"></span>
+      </div>
+    </div>
+
+    <!-- Timer duelo -->
+    <div class="timer-wrap" id="duelo-timer-wrap">
+      <div class="timer-label">
+        <span class="timer-secs" id="duelo-timer-secs">15</span>
+        <button id="btn-duelo-ver-resultado" style="font-family:'Cinzel',serif;font-size:11px;padding:3px 10px;border-radius:8px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.35);color:var(--gold);cursor:pointer">Ver Resultado</button>
+      </div>
+      <div class="timer-bar-bg"><div class="timer-bar-fill" id="duelo-timer-bar" style="width:100%"></div></div>
+    </div>
+
+    <!-- Pergunta -->
+    <div class="jogo-content" id="duelo-content" style="flex:1;overflow:hidden"></div>
+
+    <!-- Footer -->
+    <div class="jogo-footer">
+      <button class="btn-sair-jogo" id="btn-duelo-sair-jogo">⬅  Sair</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONQUISTAS -->
+<div id="screen-conquistas" class="screen hidden">
+  <div class="screen-header"><button class="back-btn" id="btn-conquistas-back">←</button><span class="title">🏅  CONQUISTAS</span></div>
+  <div style="flex:1;overflow-y:auto">
+    <div id="conquistas-grid" class="conquistas-grid"></div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- MODAL PERFIL -->
+<div class="overlay" id="overlay-perfil">
+  <div class="sheet">
+
+    <!-- ── PARTE FIXA (topo) ── -->
+    <div style="padding:24px 24px 0;flex-shrink:0">
+      <div class="perfil-handle"></div>
+      <span style="font-size:48px;display:block;text-align:center;margin-bottom:8px">👤</span>
+      <p style="font-family:'Cinzel',serif;color:var(--gold);font-size:19px;text-align:center" id="perfil-nome">—</p>
+      <p style="color:var(--muted);font-size:14px;text-align:center;margin-top:2px" id="perfil-user">—</p>
+      <div class="divider" style="margin:12px 0"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+      <div class="progress-bar" style="margin-bottom:4px"><div class="progress-fill" id="perfil-bar" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:0">
+        <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--gold)">PROGRESSO</span>
+        <span style="color:var(--gold-light);font-size:12px" id="perfil-pct">0%</span>
+      </div>
+    </div>
+
+    <!-- ── PARTE COM SCROLL (stats + histórico + botões) ── -->
+    <div style="flex:1;overflow-y:auto;padding:14px 24px 24px;-webkit-overflow-scrolling:touch">
+      <div class="stats-row" id="perfil-stats" style="margin-bottom:16px"></div>
+
+      <!-- Últimas partidas -->
+      <p style="font-family:'Cinzel',serif;color:var(--gold);font-size:11px;letter-spacing:1.5px;margin-bottom:8px">ÚLTIMAS PARTIDAS</p>
+      <div id="perfil-historico" style="margin-bottom:16px">
+        <p style="color:var(--dim);font-size:12px;text-align:center;padding:8px 0">Nenhuma partida ainda</p>
+      </div>
+
+      <!-- Botões de ação -->
+      <button class="btn-gold" id="btn-perfil-close" style="margin-bottom:10px">Fechar</button>
+      <button class="btn-outline" id="btn-resetar-historico" style="border-color:rgba(213,0,0,.4);color:#FF5252">🗑️  Resetar Histórico</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- POPUP COUNTDOWN DUELO -->
+<div class="duelo-countdown-overlay" id="duelo-countdown" style="display:none;pointer-events:none">
+  <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">PREPARAR…</div>
+  <div id="duelo-countdown-num" class="duelo-countdown-num">5</div>
+</div>
+
+<!-- POPUP RESULTADO DUELO -->
+<div class="popup-center" id="popup-duelo-resultado">
+  <div class="popup-box" style="max-width:340px;width:92%">
+    <div class="duelo-resultado-box">
+      <p class="duelo-winner-label" id="duelo-winner-label" style="color:var(--gold)">⚔️ Resultado</p>
+      <div class="duelo-resultado-vs">
+        <div class="duelo-res-card">
+          <div class="duelo-res-avatar" id="dres-av-eu" style="background:rgba(212,175,55,.18);border:2px solid var(--gold)">👤</div>
+          <span class="duelo-res-nome" id="dres-nome-eu" style="color:var(--gold)">Você</span>
+          <span class="duelo-res-pts" id="dres-pts-eu" style="color:var(--gold)">0</span>
+          <span class="duelo-res-stats" id="dres-stats-eu"></span>
+        </div>
+        <span style="font-family:'Cinzel Decorative',serif;font-size:18px;color:var(--dim)">VS</span>
+        <div class="duelo-res-card">
+          <div class="duelo-res-avatar" id="dres-av-op" style="background:rgba(74,144,226,.18);border:2px solid #4a90e2">👤</div>
+          <span class="duelo-res-nome" id="dres-nome-op" style="color:#4a90e2">Oponente</span>
+          <span class="duelo-res-pts" id="dres-pts-op" style="color:#4a90e2">0</span>
+          <span class="duelo-res-stats" id="dres-stats-op"></span>
+        </div>
+      </div>
+      <button class="btn-gold" id="btn-duelo-jogar-novo" style="margin-bottom:10px">🔄  Jogar Novamente</button>
+      <button class="btn-outline" id="btn-duelo-home">🏠  Voltar ao Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP OPONENTE DESISTIU -->
+<div class="popup-center" id="popup-duelo-desistiu">
+  <div class="popup-box">
+    <span style="font-size:48px;display:block;margin-bottom:10px">😓</span>
+    <p style="font-family:'Cinzel',serif;color:var(--gold);font-size:17px;font-weight:700;margin-bottom:8px">Ops!</p>
+    <p style="color:#aaa;font-size:14px;line-height:1.7;margin-bottom:20px">O <strong style="color:#fff" id="duelo-desistiu-nome">Irmão(a)</strong> desistiu da batalha! 😓</p>
+    <button class="btn-gold" id="btn-desistiu-home">🏠  Voltar ao Menu</button>
+  </div>
+</div>
+
+<!-- POPUP CONFIRMAR RESET -->
+<div class="popup-center" id="popup-reset-confirm">
+  <div class="popup-box" style="border-color:rgba(213,0,0,.5)">
+    <span style="font-size:44px;display:block;margin-bottom:10px">⚠️</span>
+    <p style="font-family:'Cinzel',serif;color:#FF5252;font-size:17px;font-weight:700;margin-bottom:8px">Ops, cuidado!</p>
+    <p style="color:#aaa;font-size:13px;line-height:1.7;margin-bottom:6px">Quer mesmo <strong style="color:#fff">resetar seu histórico</strong>?</p>
+    <p style="color:#FF5252;font-size:13px;line-height:1.7;margin-bottom:20px">Você perderá todo o XP e voltará a <strong style="color:#fff">zero acertos, zero erros</strong>. Todas as perguntas serão liberadas novamente. <strong style="color:#fff">Isso não pode ser desfeito.</strong></p>
+    <button class="btn-gold" id="btn-reset-cancelar" style="margin-bottom:10px">← Cancelar</button>
+    <button id="btn-reset-confirmar" style="display:block;width:100%;padding:13px;background:rgba(213,0,0,.15);border:1.5px solid rgba(213,0,0,.6);border-radius:11px;color:#FF5252;font-family:'Cinzel',serif;font-weight:700;font-size:14px;cursor:pointer">🗑️  Sim, Resetar Tudo</button>
+  </div>
+</div>
+
+<!-- POPUP PERFIL RANKING -->
+<div class="popup-center" id="popup-perfil-ranking">
+  <div class="popup-box" style="width:88%;max-width:340px;padding:28px 22px;text-align:center">
+    <div style="font-size:52px;margin-bottom:10px" id="rk-posicao-medal">👤</div>
+    <span style="font-size:46px;display:block;margin-bottom:8px">👤</span>
+    <p style="font-family:'Cinzel',serif;color:var(--gold);font-size:19px;font-weight:700" id="rk-nome">—</p>
+    <p style="color:var(--muted);font-size:14px;margin-top:4px" id="rk-user">—</p>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-top:10px;margin-bottom:14px">
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);border-radius:20px;padding:5px 14px;font-family:'Cinzel',serif;color:var(--gold);font-size:12px;font-weight:700" id="rk-nivel-badge">🏅 Nível 1</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+      <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.4))"></div>
+      <span style="color:var(--gold);font-size:10px">✦</span>
+      <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,rgba(212,175,55,.4))"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px" id="rk-stats"></div>
+    <button class="btn-gold" id="btn-rk-perfil-close">Fechar Perfil</button>
+  </div>
+</div>
+<div class="popup-center" id="popup-resultado">
+  <div class="popup-box" id="popup-box">
+    <span class="popup-emoji" id="popup-emoji">🎉</span>
+    <p class="popup-title" id="popup-title">Parabéns!</p>
+    <span class="popup-pray" id="popup-pray">🙏</span>
+    <p class="popup-msg" id="popup-msg"></p>
+    <div class="popup-resposta" id="popup-resposta">
+      <p class="popup-resposta-label">RESPOSTA CORRETA</p>
+      <p class="popup-resposta-text" id="popup-resposta-text"></p>
+    </div>
+    <div class="versiculo-box" id="popup-versiculo">
+      <p class="versiculo-ref" id="popup-versiculo-ref">📖 REFERÊNCIA</p>
+      <p class="versiculo-texto" id="popup-versiculo-texto"></p>
+    </div>
+    <p class="popup-streak" id="popup-streak"></p>
+    <p id="popup-xp-label" style="font-family:'Cinzel',serif;font-size:13px;color:var(--gold);margin-bottom:12px;display:none"></p>
+    <button class="btn-gold" id="btn-popup-proxima">Próxima Pergunta ➡</button>
+  </div>
+</div>
+
+<!-- POPUP GAME OVER -->
+<div class="popup-center" id="popup-gameover">
+  <div class="popup-box">
+    <div class="gameover-box">
+      <span class="gameover-icon">👎🏻</span>
+      <p class="gameover-title">GAME OVER</p>
+      <div id="go-modo-badge" style="font-family:Cinzel,serif;font-size:12px;color:var(--gold);margin-bottom:12px;opacity:.8"></div>
+      <div class="gameover-stats">
+        <div class="go-stat"><span class="go-stat-val" id="go-acertos" style="color:var(--green)">0</span><span class="go-stat-lbl">Acertos</span></div>
+        <div class="go-stat"><span class="go-stat-val" id="go-erros" style="color:var(--red-soft)">0</span><span class="go-stat-lbl">Erros</span></div>
+        <div class="go-stat"><span class="go-stat-val" id="go-pergs" style="color:var(--gold)">0</span><span class="go-stat-lbl">Perguntas</span></div>
+        <div class="go-stat"><span class="go-stat-val" id="go-streak" style="color:var(--orange)">0</span><span class="go-stat-lbl">Maior Streak</span></div>
+        <div class="go-stat" style="grid-column:span 2"><span class="go-stat-val" id="go-xp" style="color:var(--gold-light)">+0 XP</span><span class="go-stat-lbl">XP Ganho</span></div>
+      </div>
+      </div>
+
+      <button class="btn-gold" id="btn-go-jogar-novo" style="margin-bottom:10px">🔄  Jogar Novamente</button>
+      <button class="btn-outline" id="btn-go-home">🏠  Voltar ao Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════ FIREBASE ═══════════
+const firebaseConfig = {
+  apiKey:"AIzaSyCjdAJtbOh0dxYsIUUCc8iVN686Yj3hO48",
+  authDomain:"royalcyber-elohimquest.firebaseapp.com",
+  databaseURL:"https://royalcyber-elohimquest-default-rtdb.firebaseio.com",
+  projectId:"royalcyber-elohimquest",
+  storageBucket:"royalcyber-elohimquest.firebasestorage.app",
+  messagingSenderId:"525330030955",
+  appId:"1:525330030955:web:24ee7c0a171f28c2dbac2e",
+  measurementId:"G-JSF316MZYX"
+};
+firebase.initializeApp(firebaseConfig);
+const auth      = firebase.auth();
+const db        = firebase.database();
+const analytics = firebase.analytics();
+
+// ═══════════ CONSTANTES ═══════════
+const NIVEL_NOMES = ['','Iniciante','Discípulo','Apóstolo','Profeta','Ancião'];
+const LETRAS = ['A','B','C','D'];
+const TIMER_RAPIDO   = 15;
+const VIDAS_MARATONA = 3;
+const XP_ACERTO = 10;
+const XP_ACERTO_RAPIDO = 20;
+const XP_ERRO = 0;
+
+function calcNivel(a){ if(a>=100)return 5; if(a>=50)return 4; if(a>=30)return 3; if(a>=10)return 2; return 1; }
+
+// ═══════════ CONQUISTAS — DEFINIÇÕES ═══════════
+const LISTA_CONQUISTAS = [
+  {id:'primeiro_acerto',   icon:'⭐', nome:'Primeiro Passo',    desc:'Acerte a 1ª pergunta',       check:u=>u.acertos>=1},
+  {id:'dez_acertos',       icon:'✝️', nome:'Discípulo Fiel',    desc:'10 acertos totais',           check:u=>u.acertos>=10},
+  {id:'cinquenta_acertos', icon:'📖', nome:'Estudioso da Palavra',desc:'50 acertos totais',         check:u=>u.acertos>=50},
+  {id:'cem_acertos',       icon:'👑', nome:'Servo de Deus',     desc:'100 acertos totais',          check:u=>u.acertos>=100},
+  {id:'streak3',           icon:'🔥', nome:'Em Chamas',         desc:'3 em sequência numa partida', check:u=>u.maiorStreak>=3},
+  {id:'streak10',          icon:'⚡', nome:'Trovão do Senhor',  desc:'10 em sequência numa partida',check:u=>u.maiorStreak>=10},
+  {id:'diario3',           icon:'📅', nome:'Perseverança',      desc:'3 dias seguidos',             check:u=>u.streakDiario>=3},
+  {id:'diario7',           icon:'🌟', nome:'Semana Santa',      desc:'7 dias seguidos',             check:u=>u.streakDiario>=7},
+  {id:'nivel3',            icon:'🏛️', nome:'Apóstolo',          desc:'Alcance o nível 3',           check:u=>calcNivel(u.acertos||0)>=3},
+  {id:'nivel5',            icon:'🕊️', nome:'Ancião',            desc:'Alcance o nível 5',           check:u=>calcNivel(u.acertos||0)>=5},
+  {id:'daily_completo',    icon:'🙏', nome:'Devocional',        desc:'Complete 1 desafio diário',   check:u=>u.dailysCompletos>=1},
+  {id:'perfeito',          icon:'💎', nome:'Perfeição Divina',  desc:'10/10 sem errar no Rápido',   check:u=>u.partidas10sem>=1},
+];
+
+// ═══════════ STATE ═══════════
+let userData=null, todasPerguntas=[], perguntasFiltradas=[], versiculos=[];
+let jogoIdx=0, jogoRespondido=false, jogoAcertos=0, jogoErros=0;
+let jogoIndiceCorreto=-1, jogoOpcoes=[], jogoRespostaCorreta='';
+let jogoUsadas=new Set(), jogoStreak=0, jogoMaiorStreak=0, jogoTotalRespondidas=0;
+let jogoModo='rapido', vidasRestantes=VIDAS_MARATONA;
+let timerInterval=null, timerSecs=TIMER_RAPIDO;
+let rankingUnsub=null;
+let selModo='rapido', selDificuldades=new Set(), selCategorias=new Set();
+let isDailyMode=false, dailyPerguntasHoje=[], dailyIdx=0;
+let jogoXPSessao=0, jogoErrosSessao=0;
+let perguntasVistas=new Set(); // IDs de perguntas já respondidas pelo usuário
+
+// ═══════════ NAVEGAÇÃO ═══════════
+const SCREENS=['loading','login','cadastro','home','selecao','jogo','ranking','sobre','privacidade','conquistas','duelo'];
+function showScreen(name){
+  SCREENS.forEach(s=>document.getElementById('screen-'+s).classList.toggle('hidden',s!==name));
+  window.scrollTo(0,0);
+}
+
+// ═══════════ UTILS ═══════════
+function renderBadge(id,icon,val,color){
+  const el=document.getElementById(id);
+  el.innerHTML=`<span>${icon}</span><span>${val}</span>`;
+  el.style.background=color+'22'; el.style.border='1px solid '+color+'66'; el.style.color=color;
+}
+function showErr(id,msg){const e=document.getElementById(id);e.textContent='⚠️  '+msg;e.classList.add('show')}
+function clearErr(id){const e=document.getElementById(id);e.textContent='';e.classList.remove('show')}
+function setBtn(id,txt,dis=false){const b=document.getElementById(id);b.textContent=txt;b.disabled=dis}
+function diffClass(d){
+  if(!d)return'';
+  const l=String(d).toLowerCase();
+  if(l.includes('fáci')||l.includes('faci')||l==='1')return'diff-facil';
+  if(l.includes('médi')||l.includes('medi')||l==='2')return'diff-medio';
+  if(l.includes('dif')||l==='3')return'diff-dificil';
+  return'diff-medio';
+}
+// playSound definido abaixo com sons melhorados
+
+// ═══════════ AUTH ═══════════
+auth.onAuthStateChanged(async user=>{
+  if(user){
+    const snap=await db.ref('users/'+user.uid).get();
+    if(snap.exists())userData=snap.val();
+    db.ref('users/'+user.uid).on('value',s=>{if(s.exists()){userData=s.val();updateHomeUI();}});
+    // carrega perguntas
+    const ps=await db.ref('elohimquest').get();
+    if(ps.exists()){
+      const raw=ps.val();
+      // Preserva chaves do Firebase como ID de cada pergunta
+      if(Array.isArray(raw)){
+        todasPerguntas=raw.map((p,i)=>({...p,_id:p._id||p.id||String(i)}));
+      } else {
+        todasPerguntas=Object.entries(raw).map(([k,v])=>({...v,_id:v._id||v.id||k}));
+      }
+      versiculos=todasPerguntas.filter(p=>p.versiculo||p.versiculo_ref||p.referencia);
+      preencherFiltros();
+    }
+    // Carrega perguntas já vistas pelo usuário
+    carregarPerguntasVistas(user.uid);
+    // verifica streak diário
+    verificarStreakDiario();
+    // verifica link de sala (convite de duelo)
+    verificarLinkSala();
+    // verifica se há sala pendente do sessionStorage (chegou pelo link antes do login)
+    const pendingSala=sessionStorage.getItem('pendingSala');
+    if(pendingSala){sessionStorage.removeItem('pendingSala');setTimeout(()=>entrarSalaDuelo(pendingSala),600);}
+    updateHomeUI();
+    atualizarBannerDiario();
+    // verifica conquistas para usuários que já tinham dados
+    const uid2=user.uid;
+    setTimeout(()=>{if(userData)verificarConquistas(uid2);},1200);
+    showScreen('home');
+  } else {
+    userData=null;
+    showScreen('login');
+  }
+});
+
+// ═══════════ HOME UI ═══════════
+function updateHomeUI(){
+  if(!userData)return;
+  const a=userData.acertos||0,e=userData.erros||0,n=calcNivel(a);
+  document.getElementById('home-username').textContent='@'+(userData.username||'guerreiro');
+  document.getElementById('home-nivel-badge').textContent='🏅  Nível '+n+' — '+NIVEL_NOMES[n];
+  renderBadge('home-badge-acertos','✅',a,'#00C853');
+  renderBadge('home-badge-erros','❌',e,'#D50000');
+  // streak diário
+  const sd=userData.streakDiario||0;
+  const swrap=document.getElementById('streak-daily-wrap');
+  if(sd>=2){
+    swrap.style.display='flex';
+    document.getElementById('streak-daily-text').textContent=`🔥 ${sd} dias seguidos — Continue assim!`;
+  } else {
+    swrap.style.display='none';
+  }
+}
+
+// ═══════════ FILTROS — SELEÇÃO ═══════════
+function preencherFiltros(){
+  const difs=[...new Set(todasPerguntas.map(p=>p.dificuldade).filter(Boolean))];
+  const cats=[...new Set(todasPerguntas.map(p=>p.categoria).filter(Boolean))];
+  const wd=document.getElementById('chips-dificuldade');
+  wd.innerHTML='<button class="chip all selected" onclick="toggleChip(this,\'dificuldade\')">Todas</button>';
+  difs.forEach(d=>{
+    const b=document.createElement('button');
+    b.className='chip'; b.textContent=d; b.dataset.val=d;
+    b.onclick=()=>toggleChip(b,'dificuldade');
+    wd.appendChild(b);
+  });
+  const wc=document.getElementById('chips-categoria');
+  wc.innerHTML='<button class="chip all selected" onclick="toggleChip(this,\'categoria\')">Todas</button>';
+  cats.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='chip'; b.textContent=c; b.dataset.val=c;
+    b.onclick=()=>toggleChip(b,'categoria');
+    wc.appendChild(b);
+  });
+}
+
+function selecionarModo(modo){
+  selModo=modo;
+  document.getElementById('modo-rapido').classList.toggle('selected',modo==='rapido');
+  document.getElementById('modo-maratona').classList.toggle('selected',modo==='maratona');
+  document.getElementById('modo-estudo').classList.toggle('selected',modo==='estudo');
+}
+
+function toggleChip(chip,tipo){
+  const wrap=document.getElementById('chips-'+tipo);
+  const allBtn=wrap.querySelector('.all');
+  if(chip.classList.contains('all')){
+    // seleciona "Todas" — desmarca tudo mais
+    wrap.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+    allBtn.classList.add('selected');
+    if(tipo==='dificuldade')selDificuldades.clear();
+    else selCategorias.clear();
+  } else {
+    allBtn.classList.remove('selected');
+    chip.classList.toggle('selected');
+    const set=tipo==='dificuldade'?selDificuldades:selCategorias;
+    if(chip.classList.contains('selected'))set.add(chip.dataset.val);
+    else set.delete(chip.dataset.val);
+    // se nada selecionado, volta para Todas
+    if(set.size===0)allBtn.classList.add('selected');
+  }
+}
+
+function aplicarFiltros(){
+  let p=[...todasPerguntas];
+  if(selDificuldades.size>0)p=p.filter(q=>selDificuldades.has(q.dificuldade));
+  if(selCategorias.size>0)p=p.filter(q=>selCategorias.has(q.categoria));
+  // Remove perguntas já vistas (nunca repete)
+  const naovistas=p.filter(q=>!perguntasVistas.has(q._id));
+  // Se todas já foram vistas com esses filtros, usa todas (recomeça ciclo)
+  const final=naovistas.length>0?naovistas:p;
+  if(naovistas.length===0&&p.length>0){
+    console.log('Todas as perguntas com esses filtros já foram vistas. Reiniciando ciclo.');
+  }
+  return final.sort(()=>Math.random()-.5);
+}
+
+// ═══════════ JOGO — INICIAR ═══════════
+function abrirSelecao(){
+  preencherFiltros();
+  showScreen('selecao');
+}
+
+function iniciarJogo(){
+  jogoModo=selModo;
+  perguntasFiltradas=aplicarFiltros();
+  if(perguntasFiltradas.length===0){
+    alert('Nenhuma pergunta encontrada com esses filtros. Tente outros.');
+    return;
+  }
+  try{ analytics.logEvent('jogo_iniciado',{modo:selModo,categoria:[...selCategorias].join(',')||'todas',dificuldade:[...selDificuldades].join(',')||'todas'}); }catch(e){}
+
+  jogoIdx=0; jogoUsadas=new Set([0]);
+  jogoAcertos=userData?.acertos||0; jogoErros=userData?.erros||0;
+  jogoStreak=0; jogoMaiorStreak=0; jogoTotalRespondidas=0;
+  jogoXPSessao=0; jogoErrosSessao=0;
+  vidasRestantes=VIDAS_MARATONA;
+  isDailyMode=false;
+
+  showScreen('jogo');
+  renderBadge('jogo-badge-acertos','✅',jogoAcertos,'#00C853');
+  renderBadge('jogo-badge-erros','❌',jogoErros,'#D50000');
+
+  const timerWrap=document.getElementById('timer-wrap');
+  const modeBadge=document.getElementById('timer-mode-badge');
+  if(jogoModo==='rapido'){
+    timerWrap.style.display='block';
+    modeBadge.textContent='⚡ RÁPIDO';
+    modeBadge.style.background='rgba(212,175,55,.15)';
+    modeBadge.style.color='var(--gold)';
+    modeBadge.style.border='1px solid rgba(212,175,55,.3)';
+  } else if(jogoModo==='estudo'){
+    timerWrap.style.display='none';
+    modeBadge.textContent='📖 ESTUDO';
+    modeBadge.style.background='rgba(0,200,83,.1)';
+    modeBadge.style.color='var(--green)';
+    modeBadge.style.border='1px solid rgba(0,200,83,.3)';
+  } else {
+    timerWrap.style.display='none';
+    modeBadge.textContent='🏃 MARATONA';
+  }
+
+  const vidasWrap=document.getElementById('vidas-wrap');
+  if(jogoModo==='maratona'){
+    vidasWrap.style.display='flex';
+    renderVidas();
+  } else {
+    vidasWrap.style.display='none';
+  }
+
+  renderPergunta();
+}
+
+// ═══════════ VIDAS ═══════════
+function renderVidas(){
+  const w=document.getElementById('vidas-wrap');
+  w.innerHTML='';
+  for(let i=0;i<VIDAS_MARATONA;i++){
+    const span=document.createElement('span');
+    span.className='vida'+(i>=vidasRestantes?' perdida':'');
+    span.textContent='❤️';
+    w.appendChild(span);
+  }
+}
+
+// ═══════════ TIMER ═══════════
+function iniciarTimer(){
+  pararTimer();
+  timerSecs=TIMER_RAPIDO;
+  atualizarTimerUI();
+  timerInterval=setInterval(()=>{
+    timerSecs--;
+    atualizarTimerUI();
+    if(timerSecs<=0){
+      pararTimer();
+      // Tempo esgotado = erro automático
+      if(!jogoRespondido) responderTimeout();
+    }
+  },1000);
+}
+function pararTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+function atualizarTimerUI(){
+  document.getElementById('timer-secs').textContent=timerSecs;
+  const pct=(timerSecs/TIMER_RAPIDO)*100;
+  const bar=document.getElementById('timer-bar');
+  bar.style.width=pct+'%';
+  if(timerSecs<=5)bar.style.background='linear-gradient(to right,#D50000,#FF5252)';
+  else if(timerSecs<=8)bar.style.background='linear-gradient(to right,#A07820,#FFC107)';
+  else bar.style.background='linear-gradient(to right,var(--gold-dark),var(--gold-light))';
+}
+function responderTimeout(){
+  jogoRespondido=true;
+  jogoStreak=0;
+  jogoErros++;
+  renderBadge('jogo-badge-erros','❌',jogoErros,'#D50000');
+  const uid=auth.currentUser?.uid;
+  if(uid)db.ref('users/'+uid).update({erros:jogoErros});
+  if(userData)userData.erros=jogoErros;
+  // Destaca correta
+  document.querySelectorAll('.opcao-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===jogoIndiceCorreto)btn.classList.add('correct');
+  });
+  // Mostra caixa de resposta certa
+  mostrarRespostaCerta();
+  // Popup timeout
+  const pop=document.getElementById('popup-resultado');
+  const box=document.getElementById('popup-box');
+  document.getElementById('popup-emoji').textContent='⏰';
+  document.getElementById('popup-title').textContent='Tempo Esgotado!';
+  document.getElementById('popup-title').style.color='#FFC107';
+  document.getElementById('popup-pray').textContent='😮';
+  document.getElementById('popup-msg').textContent='Você não respondeu a tempo!';
+  box.style.borderColor='#FFC107';
+  mostrarPopupRespostaCerta();
+  mostrarVersiculoPopup(perguntasFiltradas[jogoIdx]);
+  document.getElementById('popup-xp-label').style.display='none';
+  // Marcar como vista mesmo no timeout
+  const pTimeout=perguntasFiltradas[jogoIdx];
+  const uidTimeout=auth.currentUser?.uid;
+  if(pTimeout&&pTimeout._id&&uidTimeout){
+    marcarPerguntaVista(pTimeout._id, uidTimeout);
+  }
+  pop.classList.add('show');
+  jogoTotalRespondidas++;
+  jogoErrosSessao++;
+  if(jogoModo==='maratona'){
+    vidasRestantes=Math.max(0,vidasRestantes-1);
+    renderVidas();
+    if(vidasRestantes===0){setTimeout(()=>{pop.classList.remove('show');mostrarGameOver();},1400);}
+  }
+}
+
+// ═══════════ GERAR OPÇÕES ═══════════
+function gerarOpcoes(p){
+  const correta=String(p.resposta||p.respostaCorreta||p.gabarito||p.answer||'').trim();
+  if(!correta)return{opcoes:[],indiceCorreto:-1};
+  const pool=perguntasFiltradas
+    .filter(q=>q!==p)
+    .map(q=>String(q.resposta||q.respostaCorreta||q.gabarito||q.answer||'').trim())
+    .filter((v,i,arr)=>v&&v.toLowerCase()!==correta.toLowerCase()&&arr.indexOf(v)===i);
+  const dist=pool.sort(()=>Math.random()-.5).slice(0,3);
+  const opcoes=[...dist];
+  const pos=Math.floor(Math.random()*(opcoes.length+1));
+  opcoes.splice(pos,0,correta);
+  return{opcoes,indiceCorreto:pos,respostaCorreta:correta};
+}
+
+// ═══════════ RENDER PERGUNTA ═══════════
+function renderPergunta(){
+  if(perguntasFiltradas.length===0)return;
+  const p=perguntasFiltradas[jogoIdx];
+
+  // opções do banco ou geradas
+  let opcoes=[],indiceCorreto=-1,respostaCorreta='';
+  let opts=p.opcoes||p.alternativas||p.respostas||p.options||[];
+  if(!Array.isArray(opts)&&typeof opts==='object'&&opts)opts=Object.values(opts);
+  if(opts.length===0){const t=[p.opcao1,p.opcao2,p.opcao3,p.opcao4].filter(Boolean);if(t.length>0)opts=t;}
+  if(opts.length>0){
+    opcoes=opts; respostaCorreta=String(p.resposta||p.respostaCorreta||opts[p.correta]||'');
+    // índice
+    if(p.correta!==undefined&&p.correta!==null){const v=Number(p.correta);indiceCorreto=v>=opts.length?v-1:v;}
+    else{const rc=p.respostaCorreta||p.resposta||'';indiceCorreto=opts.findIndex(o=>String(o).toLowerCase().trim()===rc.toLowerCase().trim());}
+  } else {
+    const g=gerarOpcoes(p);
+    opcoes=g.opcoes; indiceCorreto=g.indiceCorreto; respostaCorreta=g.respostaCorreta||'';
+  }
+
+  jogoOpcoes=opcoes; jogoIndiceCorreto=indiceCorreto; jogoRespostaCorreta=respostaCorreta;
+  jogoRespondido=false;
+
+  const texto=p.pergunta||p.questao||p.enunciado||'(sem texto)';
+  const dc=diffClass(p.dificuldade);
+
+  document.getElementById('jogo-content').innerHTML=`
+    <div class="question-box">
+      <div class="question-meta">
+        <span class="question-num">${isDailyMode?'📅 DIÁRIO '+jogoTotalRespondidas+' / 5':'PERGUNTA '+(jogoIdx+1)+' / '+perguntasFiltradas.length}</span>
+        ${p.categoria?`<span class="cat-chip">${p.categoria}</span>`:''}
+        ${p.dificuldade?`<span class="diff-chip ${dc}">${p.dificuldade}</span>`:''}
+      </div>
+      <p class="question-text">${texto}</p>
+    </div>
+    <div class="opcoes" id="opcoes-list">
+      ${opcoes.map((op,i)=>`
+        <button class="opcao-btn" onclick="responder(${i})">
+          <span class="opcao-letter">${LETRAS[i]}.</span>
+          <span class="opcao-text">${op}</span>
+        </button>`).join('')}
+    </div>
+    <div class="resposta-certa-box" id="rc-box">
+      <p class="resposta-certa-label">RESPOSTA CORRETA</p>
+      <p class="resposta-certa-text" id="rc-text"></p>
+    </div>
+  `;
+
+  // streak badge
+  const sb=document.getElementById('streak-badge');
+  if(jogoStreak>=2){sb.classList.add('show');document.getElementById('streak-num').textContent=jogoStreak;}
+  else sb.classList.remove('show');
+
+  if(jogoModo==='rapido'||isDailyMode)iniciarTimer();
+  // Modo estudo: mostrar dica se disponível
+  if(jogoModo==='estudo'){
+    setTimeout(()=>mostrarDicaEstudo(perguntasFiltradas[jogoIdx]),100);
+  }
+  // Atualizar progresso daily no banner interno
+  if(isDailyMode){
+    const uid=auth.currentUser?.uid;
+    if(uid&&userData){
+      userData.dailyProgressoHoje=jogoTotalRespondidas;
+      db.ref('users/'+uid).update({dailyProgressoHoje:jogoTotalRespondidas});
+    }
+  }
+}
+
+// ═══════════ RESPONDER ═══════════
+function responder(opcIdx){
+  if(jogoRespondido)return;
+  const tempoRestante=timerSecs;
+  pararTimer();
+  jogoRespondido=true;
+  jogoTotalRespondidas++;
+  const correto=opcIdx===jogoIndiceCorreto;
+
+  document.querySelectorAll('.opcao-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===jogoIndiceCorreto)btn.classList.add('correct');
+    else if(i===opcIdx&&!correto)btn.classList.add('wrong');
+  });
+
+  const uid=auth.currentUser?.uid;
+  if(correto){
+    jogoStreak++; jogoMaiorStreak=Math.max(jogoMaiorStreak,jogoStreak);
+    jogoAcertos++;
+    const xp=(jogoModo==='rapido'&&tempoRestante>8)?XP_ACERTO_RAPIDO:XP_ACERTO;
+    jogoXPSessao+=xp;
+    mostrarXPFloat(xp);
+    renderBadge('jogo-badge-acertos','\u2705',jogoAcertos,'#00C853');
+    if(uid)db.ref('users/'+uid).update({acertos:jogoAcertos,nivel:calcNivel(jogoAcertos),maiorStreak:Math.max(userData?.maiorStreak||0,jogoMaiorStreak)});
+    if(userData){userData.acertos=jogoAcertos;userData.maiorStreak=Math.max(userData.maiorStreak||0,jogoMaiorStreak);}
+    playSound('acerto');
+  } else {
+    jogoStreak=0;
+    jogoErros++;
+    jogoErrosSessao++;
+    renderBadge('jogo-badge-erros','\u274c',jogoErros,'#D50000');
+    if(uid)db.ref('users/'+uid).update({erros:jogoErros});
+    if(userData)userData.erros=jogoErros;
+    mostrarRespostaCerta();
+    playSound('erro');
+    if(jogoModo==='maratona'){
+      vidasRestantes=Math.max(0,vidasRestantes-1);
+      renderVidas();
+    }
+  }
+
+  const pop=document.getElementById('popup-resultado');
+  const box=document.getElementById('popup-box');
+  document.getElementById('popup-emoji').textContent=correto?'\ud83c\udf89':'\ud83d\ude2c';
+  document.getElementById('popup-title').textContent=correto?'Parab\u00e9ns! Acertou!':'Ops! N\u00e3o acertou\u2026';
+  document.getElementById('popup-title').style.color=correto?'#00C853':'#FF5252';
+  document.getElementById('popup-pray').textContent=correto?'\ud83d\ude4f':'\ud83d\ude44';
+  document.getElementById('popup-msg').textContent=correto?'Que Deus abençoe sua jornada!':'Eita irmão(a), vigia! Continue tentando!';
+  box.style.borderColor=correto?'#00C853':'#D50000';
+
+  if(!correto)mostrarPopupRespostaCerta();
+  else document.getElementById('popup-resposta').classList.remove('show');
+
+  mostrarVersiculoPopup(perguntasFiltradas[jogoIdx]);
+
+  if(correto){
+    const xpLabel=document.getElementById('popup-xp-label');
+    const xp=(jogoModo==='rapido'&&tempoRestante>8)?XP_ACERTO_RAPIDO:XP_ACERTO;
+    xpLabel.textContent='+'+xp+'  XP ✨';
+    xpLabel.style.display='block';
+  } else {
+    document.getElementById('popup-xp-label').style.display='none';
+  }
+
+  const ps=document.getElementById('popup-streak');
+  if(correto&&jogoStreak>=3){ps.textContent='🔥 '+jogoStreak+' em sequência!';ps.classList.add('show');}
+  else ps.classList.remove('show');
+
+  pop.classList.add('show');
+
+  // Marcar pergunta como vista (nunca mais aparece)
+  const pAtual=perguntasFiltradas[jogoIdx];
+  if(pAtual&&pAtual._id&&uid){
+    marcarPerguntaVista(pAtual._id, uid);
+  }
+  if(uid&&userData)verificarConquistas(uid);
+
+  if(jogoModo==='maratona'&&vidasRestantes===0){
+    setTimeout(()=>{pop.classList.remove('show');mostrarGameOver();},1600);
+    return;
+  }
+  if(jogoModo==='rapido'&&jogoTotalRespondidas>=10){
+    if(jogoErrosSessao===0&&uid&&userData){
+      const pt=userData.partidas10sem||0;
+      db.ref('users/'+uid).update({partidas10sem:pt+1});
+      if(userData)userData.partidas10sem=pt+1;
+    }
+    setTimeout(()=>{pop.classList.remove('show');mostrarGameOver();},1600);
+    return;
+  }
+  if(isDailyMode&&jogoTotalRespondidas>=5){
+    setTimeout(()=>{pop.classList.remove('show');mostrarGameOverDiario();},1600);
+  }
+}
+
+function mostrarRespostaCerta(){
+  if(!jogoRespostaCorreta)return;
+  const box=document.getElementById('rc-box');
+  const txt=document.getElementById('rc-text');
+  if(box&&txt){txt.textContent=jogoRespostaCorreta;box.classList.add('show');}
+}
+function mostrarPopupRespostaCerta(){
+  if(!jogoRespostaCorreta)return;
+  const pr=document.getElementById('popup-resposta');
+  document.getElementById('popup-resposta-text').textContent=jogoRespostaCorreta;
+  pr.classList.add('show');
+}
+
+
+// ═══════════ PRÓXIMA ═══════════
+function proximaPergunta(){
+  document.getElementById('popup-resultado').classList.remove('show');
+  if(perguntasFiltradas.length===0)return;
+  // Daily: sequencial (já verificado game over no responder)
+  if(isDailyMode){
+    jogoIdx=(jogoIdx+1)%perguntasFiltradas.length;
+    renderPergunta();
+    return;
+  }
+  // Modo estudo: avança sequencialmente com wrap
+  if(jogoModo==='estudo'){
+    jogoIdx=(jogoIdx+1)%perguntasFiltradas.length;
+    renderPergunta();
+    return;
+  }
+  // Modos rápido/maratona: aleatório sem repetir
+  let next;
+  do{next=Math.floor(Math.random()*perguntasFiltradas.length);}
+  while(jogoUsadas.has(next)&&jogoUsadas.size<perguntasFiltradas.length);
+  if(jogoUsadas.size>=perguntasFiltradas.length)jogoUsadas.clear();
+  jogoUsadas.add(next);
+  jogoIdx=next;
+  renderPergunta();
+}
+
+// ═══════════ GAME OVER ═══════════
+function mostrarGameOver(){
+  pararTimer();
+  const sessaoAcertos=jogoTotalRespondidas-jogoErrosSessao;
+  document.getElementById('go-acertos').textContent=sessaoAcertos;
+  document.getElementById('go-erros').textContent=jogoModo==='maratona'?VIDAS_MARATONA-vidasRestantes:jogoErrosSessao;
+  document.getElementById('go-pergs').textContent=jogoTotalRespondidas;
+  document.getElementById('go-streak').textContent=jogoMaiorStreak;
+  const modoLabels={rapido:'⚡ Modo Rápido',maratona:'🏃 Modo Maratona',estudo:'📖 Modo Estudo',diario:'📅 Desafio Diário'};
+  document.getElementById('go-modo-badge').textContent=modoLabels[jogoModo]||'';
+  document.getElementById('go-xp').textContent='+'+jogoXPSessao+' XP';
+  document.getElementById('popup-gameover').classList.add('show');
+  // Salvar histórico
+  salvarHistoricoPartida(sessaoAcertos, jogoErrosSessao, jogoTotalRespondidas, jogoMaiorStreak, jogoModo, jogoXPSessao);
+  try{ analytics.logEvent('jogo_finalizado',{modo:jogoModo,acertos:sessaoAcertos,erros:jogoErrosSessao,perguntas:jogoTotalRespondidas,maior_streak:jogoMaiorStreak}); }catch(e){}
+}
+
+// Game over especial do desafio diário
+function mostrarGameOverDiario(){
+  pararTimer();
+  const sessaoAcertos=jogoTotalRespondidas-jogoErrosSessao;
+  document.getElementById('go-acertos').textContent=sessaoAcertos;
+  document.getElementById('go-erros').textContent=jogoErrosSessao;
+  document.getElementById('go-pergs').textContent=jogoTotalRespondidas;
+  document.getElementById('go-streak').textContent=jogoMaiorStreak;
+  document.getElementById('go-modo-badge').textContent='📅 Desafio Diário';
+  document.getElementById('go-xp').textContent='+'+jogoXPSessao+' XP';
+  document.getElementById('popup-gameover').classList.add('show');
+  salvarHistoricoPartida(sessaoAcertos, jogoErrosSessao, jogoTotalRespondidas, jogoMaiorStreak, 'diario', jogoXPSessao);
+  // Marcar daily como completo hoje
+  const uid=auth.currentUser?.uid;
+  if(uid){
+    const hoje=new Date().toDateString();
+    const dc=(userData?.dailysCompletos||0)+1;
+    db.ref('users/'+uid).update({dailyCompletadoEm:hoje, dailysCompletos:dc});
+    if(userData){userData.dailyCompletadoEm=hoje;userData.dailysCompletos=dc;}
+    atualizarBannerDiario();
+    verificarConquistas(uid);
+  }
+  setTimeout(()=>mostrarToastConquista({icon:'🙏',nome:'Devocional Completo!',desc:'Desafio diário concluído!'}),800);
+}
+
+// ═══════════ PERFIL MODAL ═══════════
+function openPerfil(){
+  if(!userData)return;
+  const a=userData.acertos||0,e=userData.erros||0,n=calcNivel(a);
+  const total=todasPerguntas.length||1;
+  // Progresso = % de perguntas únicas já respondidas
+  const pct=Math.min(100,Math.round((perguntasVistas.size/total)*100));
+  document.getElementById('perfil-nome').textContent=userData.nome||'—';
+  document.getElementById('perfil-user').textContent='@'+(userData.username||'—');
+  document.getElementById('perfil-pct').textContent=pct+'%';
+  document.getElementById('perfil-bar').style.width=pct+'%';
+  const sd=userData.streakDiario||0;
+  const vistas=perguntasVistas.size;
+  const totalQ=todasPerguntas.length||1;
+  document.getElementById('perfil-stats').innerHTML=[
+    {label:'Acertos',value:a,color:'#00C853',icon:'✅'},
+    {label:'Erros',value:e,color:'#D50000',icon:'❌'},
+    {label:'Nível '+n,value:NIVEL_NOMES[n],color:'#D4AF37',icon:'🏅'},
+    {label:'Perguntas vistas',value:vistas+'/'+totalQ,color:'#64b4ff',icon:'📖'},
+    {label:'Streak dias',value:sd+'🔥',color:'#FF6D00',icon:'📅'},
+    {label:'Maior streak',value:(userData.maiorStreak||0)+'⚡',color:'#FFC107',icon:'🔥'},
+    {label:'Conquistas',value:contarConquistas()+'🏅',color:'#D4AF37',icon:'🏆'},
+  ].map(s=>`<div class="stat-card" style="border-color:${s.color}33"><span style="font-size:18px;display:block;margin-bottom:4px">${s.icon}</span><span style="font-family:'Cinzel',serif;font-weight:700;font-size:13px;display:block;color:${s.color}">${s.value}</span><span style="color:var(--dim);font-size:11px;display:block;margin-top:2px">${s.label}</span></div>`).join('');
+  // Histórico
+  renderHistoricoPerfil();
+  document.getElementById('overlay-perfil').classList.add('show');
+}
+function closePerfil(){document.getElementById('overlay-perfil').classList.remove('show')}
+
+function contarConquistas(){
+  if(!userData)return 0;
+  return LISTA_CONQUISTAS.filter(c=>userData['cq_'+c.id]).length;
+}
+
+function renderHistoricoPerfil(){
+  const hist=userData?.historico||[];
+  const el=document.getElementById('perfil-historico');
+  if(!hist.length){el.innerHTML='<p style="color:var(--dim);font-size:12px;text-align:center;padding:8px 0">Nenhuma partida ainda</p>';return;}
+  const ultimas=hist.slice(-5).reverse();
+  const modos={rapido:{cor:'rgba(212,175,55,.2)',txt:'#D4AF37',label:'⚡ Rápido'},maratona:{cor:'rgba(0,200,83,.1)',txt:'#00C853',label:'🏃 Maratona'},estudo:{cor:'rgba(100,180,255,.1)',txt:'#64b4ff',label:'📖 Estudo'},diario:{cor:'rgba(212,100,255,.1)',txt:'#d064ff',label:'📅 Diário'}};
+  el.innerHTML=ultimas.map(h=>{
+    const m=modos[h.modo]||modos.rapido;
+    const d=new Date(h.ts);
+    const dt=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    return`<div class="historico-item">
+      <span class="hist-modo-badge" style="background:${m.cor};color:${m.txt};border:1px solid ${m.txt}44">${m.label}</span>
+      <div style="flex:1"><span style="color:var(--green);font-family:'Cinzel',serif;font-size:13px;font-weight:700">${h.acertos}✅</span> <span style="color:var(--red-soft);font-size:12px">${h.erros}❌</span> <span style="color:var(--orange);font-size:12px">🔥${h.streak}</span></div>
+      <span style="color:var(--dim);font-size:11px">${dt}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════ RANKING ═══════════
+const MEDALS=['🥇','🥈','🥉'];
+
+function openPerfilRanking(u, posicao){
+  const n=calcNivel(u.acertos||0);
+  const a=u.acertos||0, e=u.erros||0;
+  const total=todasPerguntas.length||1;
+  const pct=Math.min(100,Math.round(((a+e)/total)*100));
+  document.getElementById('rk-posicao-medal').textContent=MEDALS[posicao]||(posicao+1)+'º';
+  document.getElementById('rk-nome').textContent=u.nome||'—';
+  document.getElementById('rk-user').textContent='@'+(u.username||'—');
+  document.getElementById('rk-nivel-badge').textContent='🏅 Nível '+n+' — '+NIVEL_NOMES[n];
+  document.getElementById('rk-stats').innerHTML=[
+    {label:'Acertos',value:a,color:'#00C853',icon:'✅'},
+    {label:'Erros',value:e,color:'#D50000',icon:'❌'},
+    {label:'Nível '+n,value:NIVEL_NOMES[n],color:'#D4AF37',icon:'🏅'},
+  ].map(s=>`<div class="stat-card" style="border-color:${s.color}33"><span style="font-size:18px;display:block;margin-bottom:4px">${s.icon}</span><span style="font-family:'Cinzel',serif;font-weight:700;font-size:13px;display:block;color:${s.color}">${s.value}</span><span style="color:var(--dim);font-size:11px;display:block;margin-top:2px">${s.label}</span></div>`).join('');
+  document.getElementById('popup-perfil-ranking').classList.add('show');
+}
+
+function carregarRanking(){
+  document.getElementById('ranking-list').innerHTML='<div class="loading-inline">Carregando ranking…</div>';
+  if(rankingUnsub)rankingUnsub();
+  const rankRef=db.ref('users').orderByChild('acertos').limitToLast(10);
+  rankRef.on('value',snap=>{
+    if(!snap.exists()){document.getElementById('ranking-list').innerHTML='<div class="center-empty"><p>Nenhum jogador ainda!</p></div>';return;}
+    const arr=Object.values(snap.val()).sort((a,b)=>(b.acertos||0)-(a.acertos||0)).slice(0,10);
+    document.getElementById('ranking-list').innerHTML=arr.map((u,i)=>{
+      const n=calcNivel(u.acertos||0);
+      return`<div class="rank-item" onclick="openPerfilRanking(rankingCache[${i}],${i})" style="background:${i<3?'rgba(212,175,55,.06)':'#1E1A12'};border-color:${i<3?'rgba(212,175,55,.3)':'#333'};animation-delay:${i*.05}s;cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(212,175,55,.1)'" onmouseout="this.style.background='${i<3?'rgba(212,175,55,.06)':'#1E1A12'}'">
+        <span style="font-size:22px;min-width:32px;text-align:center">${MEDALS[i]||(i+1)+'.'}</span>
+        <div style="flex:1"><p style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:${i<3?'#D4AF37':'#fff'}">${u.nome||'—'}</p><p style="color:var(--muted);font-size:12px;margin-top:2px">@${u.username||'—'} · Nível ${n} — ${NIVEL_NOMES[n]}</p></div>
+        <div style="text-align:right"><span style="font-family:'Cinzel',serif;color:var(--green);font-size:18px;font-weight:700;display:block">${u.acertos||0}</span><span style="color:var(--dim);font-size:11px">acertos</span></div>
+      </div>`;
+    }).join('');
+    window.rankingCache=arr;
+  });
+  rankingUnsub=()=>rankRef.off();
+}
+
+
+
+
+
+
+// ═══════════ VERSÍCULO NO POPUP ═══════════
+function mostrarVersiculoPopup(pergunta){
+  const vb=document.getElementById('popup-versiculo');
+  const vt=document.getElementById('popup-versiculo-texto');
+  const vr=document.getElementById('popup-versiculo-ref');
+  if(!pergunta){vb.classList.remove('show');return;}
+  const texto=pergunta.versiculo||pergunta.versiculo_texto||'';
+  const ref=pergunta.versiculo_ref||pergunta.referencia||pergunta.versiculo_referencia||'';
+  if(texto){
+    vt.textContent=texto;
+    vr.textContent='📖 '+(ref||'Bíblia Sagrada');
+    vb.classList.add('show');
+  } else if(ref){
+    vt.textContent='';
+    vr.textContent='📖 '+ref;
+    vb.classList.add('show');
+  } else {
+    vb.classList.remove('show');
+  }
+}
+
+// ═══════════ XP FLOAT ═══════════
+function mostrarXPFloat(xp){
+  const el=document.createElement('div');
+  el.className='xp-float';
+  el.textContent='+'+xp+' XP';
+  // posição no centro-baixo do jogo
+  el.style.left='50%';
+  el.style.bottom='120px';
+  el.style.transform='translateX(-50%)';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1000);
+}
+
+// ═══════════ SONS MELHORADOS ═══════════
+function playSound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    if(type==='acerto'){
+      // Acorde de vitória
+      [[880,0],[1109,0.08],[1320,0.16]].forEach(([freq,delay])=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.type='sine';o.frequency.value=freq;
+        g.gain.setValueAtTime(0,ctx.currentTime+delay);
+        g.gain.linearRampToValueAtTime(0.18,ctx.currentTime+delay+0.05);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.5);
+        o.start(ctx.currentTime+delay);o.stop(ctx.currentTime+delay+0.6);
+      });
+    } else if(type==='erro'){
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sawtooth';o.frequency.value=200;
+      o.frequency.exponentialRampToValueAtTime(120,ctx.currentTime+0.4);
+      g.gain.setValueAtTime(0.25,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
+      o.start();o.stop(ctx.currentTime+0.5);
+    } else if(type==='conquista'){
+      // Fanfarra
+      [[523,0],[659,0.1],[784,0.2],[1047,0.35]].forEach(([freq,delay])=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.type='triangle';o.frequency.value=freq;
+        g.gain.setValueAtTime(0,ctx.currentTime+delay);
+        g.gain.linearRampToValueAtTime(0.22,ctx.currentTime+delay+0.04);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.45);
+        o.start(ctx.currentTime+delay);o.stop(ctx.currentTime+delay+0.5);
+      });
+    } else if(type==='daily'){
+      [[784,0],[988,0.12],[1175,0.24],[1568,0.4]].forEach(([freq,delay])=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.type='sine';o.frequency.value=freq;
+        g.gain.setValueAtTime(0,ctx.currentTime+delay);
+        g.gain.linearRampToValueAtTime(0.2,ctx.currentTime+delay+0.05);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.5);
+        o.start(ctx.currentTime+delay);o.stop(ctx.currentTime+delay+0.55);
+      });
+    }
+  }catch(e){}
+}
+
+// ═══════════ CONQUISTAS ═══════════
+function verificarConquistas(uid){
+  if(!userData)return;
+  LISTA_CONQUISTAS.forEach(c=>{
+    if(!userData['cq_'+c.id]&&c.check(userData)){
+      userData['cq_'+c.id]=Date.now();
+      db.ref('users/'+uid).update({['cq_'+c.id]:Date.now()});
+      setTimeout(()=>{
+        mostrarToastConquista(c);
+        playSound('conquista');
+      },500);
+    }
+  });
+}
+
+function mostrarToastConquista(c){
+  const t=document.createElement('div');
+  t.className='conquista-toast';
+  t.innerHTML=`<span class="ct-icon">${c.icon}</span><div class="ct-body"><p class="ct-titulo">🏅 CONQUISTA DESBLOQUEADA</p><p class="ct-nome">${c.nome}</p><p class="ct-desc">${c.desc}</p></div>`;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.classList.add('saindo');setTimeout(()=>t.remove(),450);},3500);
+}
+
+function renderTelaConquistas(){
+  const grid=document.getElementById('conquistas-grid');
+  grid.innerHTML=LISTA_CONQUISTAS.map(c=>{
+    const ok=userData&&userData['cq_'+c.id];
+    return`<div class="conquista-card ${ok?'desbloqueada':''}">
+      <span class="cq-icon">${c.icon}</span>
+      <p class="cq-nome">${c.nome}</p>
+      <p class="cq-desc">${c.desc}</p>
+      ${ok?'<p style="color:var(--gold);font-size:10px;margin-top:4px;font-family:Cinzel,serif">✓ CONQUISTADO</p>':''}
+    </div>`;
+  }).join('');
+}
+
+// ═══════════ DESAFIO DIÁRIO ═══════════
+function getTodayKey(){return new Date().toDateString();}
+
+function atualizarBannerDiario(){
+  if(!todasPerguntas.length)return;
+  const hoje=getTodayKey();
+  const completo=userData?.dailyCompletadoEm===hoje;
+  const badge=document.getElementById('daily-badge');
+  const sub=document.getElementById('daily-sub');
+  const prog=document.getElementById('daily-progress');
+  const progressoHoje=completo?5:(userData?.dailyProgressoHoje||0);
+  prog.innerHTML=Array.from({length:5},(_,i)=>`<div class="daily-dot ${i<progressoHoje?'feito':''}"></div>`).join('');
+  // Mostra progresso geral de perguntas vistas
+  const totalVistas=perguntasVistas.size;
+  const totalDisp=todasPerguntas.length;
+  const restantes=Math.max(0,totalDisp-totalVistas);
+  if(completo){
+    badge.textContent='✓ FEITO';
+    badge.style.background='rgba(0,200,83,.15)';
+    badge.style.color='var(--green)';
+    badge.style.border='1px solid rgba(0,200,83,.4)';
+    sub.textContent='Concluído hoje! Volte amanhã ✨';
+  } else {
+    badge.textContent='JOGAR';
+    badge.style.background='rgba(212,175,55,.2)';
+    badge.style.color='var(--gold)';
+    badge.style.border='1px solid rgba(212,175,55,.4)';
+    sub.textContent=restantes>0?`${restantes} perguntas novas disponíveis`:'5 perguntas especiais · Recompensa exclusiva';
+  }
+}
+
+function abrirDesafioDiario(){
+  const hoje=getTodayKey();
+  if(userData?.dailyCompletadoEm===hoje){
+    alert('Você já completou o desafio de hoje! Volte amanhã. 🙏');
+    return;
+  }
+  // Prefere perguntas não vistas para o desafio diário
+  const naoVistas=getPerguntasNaoVistas();
+  const pool=naoVistas.length>=5?naoVistas:todasPerguntas;
+  if(pool.length<5){alert('Perguntas insuficientes para o desafio.');return;}
+  // Embaralha e pega 5
+  const shuffled=[...pool].sort(()=>Math.random()-.5).slice(0,5);
+  isDailyMode=true;
+  jogoModo='rapido';
+  perguntasFiltradas=shuffled;
+  jogoIdx=0;jogoUsadas=new Set([0]);
+  jogoAcertos=userData?.acertos||0;jogoErros=userData?.erros||0;
+  jogoStreak=0;jogoMaiorStreak=0;jogoTotalRespondidas=0;
+  jogoXPSessao=0;jogoErrosSessao=0;
+  vidasRestantes=VIDAS_MARATONA;
+  showScreen('jogo');
+  renderBadge('jogo-badge-acertos','✅',jogoAcertos,'#00C853');
+  renderBadge('jogo-badge-erros','❌',jogoErros,'#D50000');
+  const timerWrap=document.getElementById('timer-wrap');
+  const modeBadge=document.getElementById('timer-mode-badge');
+  timerWrap.style.display='block';
+  modeBadge.textContent='📅 DIÁRIO';
+  modeBadge.style.background='rgba(212,100,255,.15)';
+  modeBadge.style.color='#d064ff';
+  modeBadge.style.border='1px solid rgba(212,100,255,.3)';
+  document.getElementById('vidas-wrap').style.display='none';
+  playSound('daily');
+  renderPergunta();
+}
+
+// ═══════════ STREAK DIÁRIO ═══════════
+function verificarStreakDiario(){
+  if(!userData||!auth.currentUser)return;
+  const uid=auth.currentUser.uid;
+  const hoje=getTodayKey();
+  const ontem=new Date(Date.now()-86400000).toDateString();
+  const ultimo=userData.ultimoJogoEm||'';
+  let streak=userData.streakDiario||0;
+  if(ultimo===hoje)return; // já registrado hoje
+  if(ultimo===ontem){streak++;}
+  else if(ultimo!==hoje){streak=1;}
+  db.ref('users/'+uid).update({ultimoJogoEm:hoje,streakDiario:streak});
+  if(userData){userData.ultimoJogoEm=hoje;userData.streakDiario=streak;}
+}
+
+// ═══════════ HISTÓRICO DE PARTIDAS ═══════════
+function salvarHistoricoPartida(acertos,erros,pergs,streak,modo,xp){
+  const uid=auth.currentUser?.uid;
+  if(!uid)return;
+  const hist=userData?.historico||[];
+  hist.push({acertos,erros,pergs,streak,modo,xp,ts:Date.now()});
+  if(hist.length>20)hist.splice(0,hist.length-20); // máx 20 partidas
+  db.ref('users/'+uid).update({historico:hist});
+  if(userData)userData.historico=hist;
+}
+
+// ═══════════ MODO ESTUDO — renderPergunta override ═══════════
+// No modo estudo mostramos dica antes de responder
+function mostrarDicaEstudo(p){
+  const dica=p.dica||p.hint||p.explicacao_curta||'';
+  if(!dica||jogoModo!=='estudo')return;
+  const hint=document.createElement('div');
+  hint.style.cssText='background:rgba(100,180,255,.08);border:1px solid rgba(100,180,255,.25);border-radius:10px;padding:10px 14px;margin-top:8px;font-size:13px;color:#aad4ff;line-height:1.5';
+  hint.innerHTML='<span style="font-family:Cinzel,serif;font-size:10px;color:#64b4ff;letter-spacing:1.5px;display:block;margin-bottom:4px">💡 DICA</span>'+dica;
+  const qbox=document.querySelector('.question-box');
+  if(qbox)qbox.appendChild(hint);
+}
+
+
+// ═══════════ PERGUNTAS VISTAS — NUNCA REPETE ═══════════
+function carregarPerguntasVistas(uid){
+  db.ref('users/'+uid+'/perguntasVistas').get().then(snap=>{
+    if(snap.exists()){
+      const dados=snap.val();
+      // Suporta array ou objeto de IDs
+      const ids=Array.isArray(dados)?dados:Object.values(dados);
+      perguntasVistas=new Set(ids.map(String));
+      // Atualiza o banner depois de carregar
+      atualizarBannerDiario();
+    }
+  });
+}
+
+function marcarPerguntaVista(id, uid){
+  if(!id||perguntasVistas.has(String(id)))return;
+  perguntasVistas.add(String(id));
+  // Salva no Firebase — usa push para não sobrescrever lista
+  db.ref('users/'+uid+'/perguntasVistas').push(String(id));
+}
+
+function getPerguntasNaoVistas(){
+  return todasPerguntas.filter(p=>!perguntasVistas.has(String(p._id)));
+}
+
+// ═══════════ RESETAR HISTÓRICO ═══════════
+async function resetarHistorico(){
+  const uid=auth.currentUser?.uid;
+  if(!uid)return;
+  const btn=document.getElementById('btn-reset-confirmar');
+  btn.textContent='Resetando…';
+  btn.disabled=true;
+  try{
+    // Zera tudo no banco
+    await db.ref('users/'+uid).update({
+      acertos:0,
+      erros:0,
+      nivel:1,
+      maiorStreak:0,
+      streakDiario:0,
+      ultimoJogoEm:'',
+      dailyCompletadoEm:'',
+      dailyProgressoHoje:0,
+      dailysCompletos:0,
+      partidas10sem:0,
+      historico:[],
+    });
+    // Apaga todas as perguntas vistas
+    await db.ref('users/'+uid+'/perguntasVistas').remove();
+    // Apaga todas as conquistas
+    const updates={};
+    LISTA_CONQUISTAS.forEach(c=>{updates['cq_'+c.id]=null;});
+    await db.ref('users/'+uid).update(updates);
+
+    // Reseta local
+    perguntasVistas=new Set();
+    if(userData){
+      userData.acertos=0;userData.erros=0;userData.nivel=1;
+      userData.maiorStreak=0;userData.streakDiario=0;
+      userData.ultimoJogoEm='';userData.dailyCompletadoEm='';
+      userData.dailyProgressoHoje=0;userData.dailysCompletos=0;
+      userData.partidas10sem=0;userData.historico=[];
+      LISTA_CONQUISTAS.forEach(c=>{userData['cq_'+c.id]=null;});
+    }
+
+    // Fecha popups e atualiza UI
+    document.getElementById('popup-reset-confirm').classList.remove('show');
+    closePerfil();
+    updateHomeUI();
+    atualizarBannerDiario();
+    // Toast de confirmação
+    const t=document.createElement('div');
+    t.className='conquista-toast';
+    t.style.borderColor='rgba(213,0,0,.6)';
+    t.innerHTML='<span class="ct-icon">🔄</span><div class="ct-body"><p class="ct-titulo" style="color:#FF5252">HISTÓRICO RESETADO</p><p class="ct-nome">Tudo zerado!</p><p class="ct-desc">Boas-vindas de volta, guerreiro 🙏</p></div>';
+    document.body.appendChild(t);
+    setTimeout(()=>{t.classList.add('saindo');setTimeout(()=>t.remove(),450);},3000);
+  }catch(e){
+    btn.textContent='🗑️  Sim, Resetar Tudo';
+    btn.disabled=false;
+    alert('Erro ao resetar. Tente novamente.');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  DUELO BÍBLICO — MULTIPLAYER REALTIME
+// ═══════════════════════════════════════════════
+let dueloSalaId=null, dueloRole=null; // 'host' | 'guest'
+let dueloRef=null, dueloPresRef=null;
+let dueloPerguntasIds=[], dueloIdx=0;
+let dueloTimerInterval=null, dueloTimerSecs=15;
+let dueloRespondido=false;
+let dueloPtsEu=0, dueloPtsOp=0;
+let dueloAcertosEu=0, dueloErrosEu=0;
+let dueloAcertosOp=0, dueloErrosOp=0;
+let dueloTotal=10;
+let dueloOpNome='Oponente', dueloOpUid='';
+let dueloAtivo=false;
+
+// Gera ID único de sala
+function gerarSalaId(){
+  return Math.random().toString(36).slice(2,8).toUpperCase();
+}
+
+// Abre tela de duelo e cria sala
+function abrirDuelo(){
+  if(!userData||!auth.currentUser){alert('Você precisa estar logado!');return;}
+  dueloLimparEstado();
+  dueloSalaId=gerarSalaId();
+  dueloRole='host';
+  dueloRef=db.ref('salas/'+dueloSalaId);
+  dueloAtivo=true;
+
+  // Sorteia 10 perguntas
+  const pool=[...todasPerguntas].sort(()=>Math.random()-.5).slice(0,dueloTotal);
+  dueloPerguntasIds=pool.map(p=>p._id);
+
+  const uid=auth.currentUser.uid;
+  const nome=userData.nome||userData.username||'Guerreiro';
+
+  // Cria sala no Firebase
+  dueloRef.set({
+    status:'aguardando',
+    host:{uid,nome},
+    perguntas:dueloPerguntasIds,
+    criado:Date.now(),
+    placar:{[uid]:{pts:0,acertos:0,erros:0,pergAtual:0}},
+  });
+
+  // Presença: detecta desconexão
+  dueloPresRef=db.ref('salas/'+dueloSalaId+'/presenca/'+uid);
+  dueloPresRef.set(true);
+  dueloPresRef.onDisconnect().remove();
+
+  // Atualiza UI lobby
+  document.getElementById('duelo-nome-eu').textContent=nome;
+  document.getElementById('dscore-nome-eu').textContent=nome;
+
+  // Monta link
+  const base=location.href.split('?')[0];
+  const link=base+'?sala='+dueloSalaId;
+  document.getElementById('duelo-link-text').textContent=link;
+
+  showScreen('duelo');
+  document.getElementById('duelo-lobby').style.display='flex';
+  document.getElementById('duelo-jogo').style.display='none';
+
+  // Escuta mudanças na sala
+  dueloEscutarSala();
+}
+
+// Entrar numa sala pelo link
+function entrarSalaDuelo(salaId){
+  if(!userData||!auth.currentUser){
+    // Salva para entrar após login
+    sessionStorage.setItem('pendingSala',salaId);
+    return;
+  }
+  dueloLimparEstado();
+  dueloSalaId=salaId;
+  dueloRole='guest';
+  dueloRef=db.ref('salas/'+dueloSalaId);
+  dueloAtivo=true;
+
+  const uid=auth.currentUser.uid;
+  const nome=userData.nome||userData.username||'Guerreiro';
+
+  dueloRef.get().then(snap=>{
+    if(!snap.exists()||snap.val().status!=='aguardando'){
+      alert('Sala não encontrada ou já iniciada.');
+      return;
+    }
+    const sala=snap.val();
+    const hostNome=sala.host?.nome||'Host';
+    dueloPerguntasIds=sala.perguntas||[];
+    dueloOpNome=hostNome;
+    dueloOpUid=sala.host?.uid||'';
+
+    // Presença primeiro — garante que está registrada ANTES de sinalizar pronto
+    dueloPresRef=db.ref('salas/'+dueloSalaId+'/presenca/'+uid);
+    dueloPresRef.onDisconnect().remove();
+    // Escreve presença e só depois atualiza status da sala
+    dueloPresRef.set(true).then(()=>{
+      dueloRef.update({
+        status:'pronto',
+        guest:{uid,nome},
+        ['placar/'+uid]:{pts:0,acertos:0,erros:0,pergAtual:0},
+      });
+    });
+
+    // UI
+    document.getElementById('duelo-nome-eu').textContent=nome;
+    document.getElementById('dscore-nome-eu').textContent=nome;
+    document.getElementById('duelo-nome-op').textContent=hostNome;
+    document.getElementById('dscore-nome-op').textContent=hostNome;
+    document.getElementById('duelo-sub-op').textContent='Pronto!';
+    const opCircle=document.getElementById('duelo-av-op');
+    opCircle.classList.remove('oponente-wait');
+    opCircle.classList.add('oponente-ready');
+    document.getElementById('duelo-spinner-op').remove();
+
+    document.getElementById('duelo-link-box').style.display='none';
+    document.getElementById('duelo-waiting-msg').innerHTML='<span style="color:var(--green)">✓ Conectado! Iniciando…</span>';
+
+    showScreen('duelo');
+    document.getElementById('duelo-lobby').style.display='flex';
+    document.getElementById('duelo-jogo').style.display='none';
+
+    dueloEscutarSala();
+  });
+}
+
+// Escuta mudanças da sala em tempo real
+function dueloEscutarSala(){
+  if(!dueloRef)return;
+  dueloRef.on('value',snap=>{
+    if(!snap.exists()){dueloLimparEstado();return;}
+    const sala=snap.val();
+
+    // Guest entrou: host vê e inicia countdown
+    if(dueloRole==='host'&&sala.status==='pronto'&&sala.guest){
+      const guestNome=sala.guest.nome||'Oponente';
+      dueloOpNome=guestNome;
+      dueloOpUid=sala.guest.uid||'';
+
+      // Atualiza avatar do oponente no lobby
+      document.getElementById('duelo-nome-op').textContent=guestNome;
+      document.getElementById('dscore-nome-op').textContent=guestNome;
+      document.getElementById('duelo-sub-op').textContent='Pronto!';
+      const opCircle=document.getElementById('duelo-av-op');
+      opCircle.classList.remove('oponente-wait');
+      opCircle.classList.add('oponente-ready');
+      const sp=document.getElementById('duelo-spinner-op');
+      if(sp)sp.remove();
+      document.getElementById('duelo-waiting-msg').innerHTML='<span style="color:var(--green)">✓ Oponente conectado! Iniciando…</span>';
+
+      // Marca como iniciando para ambos verem
+      setTimeout(()=>{
+        dueloRef.update({status:'iniciando'});
+      },800);
+    }
+
+    // Ambos recebem o sinal de iniciar
+    if(sala.status==='iniciando'&&!document.getElementById('duelo-countdown').style.display.includes('flex')){
+      dueloIniciarCountdown();
+    }
+
+    // Atualiza placar do oponente em tempo real
+    if(sala.status==='jogando'||sala.status==='iniciando'){
+      const opUid=dueloOpUid;
+      if(opUid&&sala.placar&&sala.placar[opUid]){
+        const op=sala.placar[opUid];
+        dueloPtsOp=op.pts||0;
+        dueloAcertosOp=op.acertos||0;
+        dueloErrosOp=op.erros||0;
+        document.getElementById('dscore-pts-op').textContent=dueloPtsOp;
+        // Badge "respondeu"
+        const badge=document.getElementById('dscore-badge-op');
+        const minha=sala.placar&&sala.placar[auth.currentUser?.uid];
+        if(op.pergAtual>=(minha?.pergAtual||0)){
+          badge.textContent='✓';
+          badge.style.background='rgba(74,144,226,.15)';
+          badge.style.color='#4a90e2';
+          badge.style.border='1px solid rgba(74,144,226,.4)';
+        } else {
+          badge.textContent='';badge.style.background='transparent';badge.style.border='none';
+        }
+      }
+    }
+
+    // Resultado: alguém pediu ver resultado ou acabaram as perguntas
+    if(sala.status==='resultado'){
+      dueloPararTimer();
+      mostrarResultadoDuelo(sala);
+    }
+
+    // Detecta desconexão do oponente via presença
+    // SÓ verifica quando o jogo já está rodando de verdade (não durante lobby/countdown)
+    const minUid=auth.currentUser?.uid;
+    if(sala.presenca&&minUid&&sala.status==='jogando'){
+      const presentes=Object.keys(sala.presenca);
+      // Garante que o oponente já tinha chegado a entrar (dueloOpUid definido)
+      if(presentes.length===1&&presentes[0]===minUid&&dueloOpUid){
+        dueloPararTimer();
+        dueloRef.update({status:'abandonado'});
+        document.getElementById('duelo-desistiu-nome').textContent=dueloOpNome;
+        document.getElementById('popup-duelo-desistiu').classList.add('show');
+      }
+    }
+    if(sala.status==='abandonado'){
+      dueloPararTimer();
+      document.getElementById('duelo-countdown').style.display='none';
+      // Só mostra popup se não for eu mesmo que saí
+      if(dueloAtivo){
+        document.getElementById('duelo-desistiu-nome').textContent=dueloOpNome;
+        document.getElementById('popup-duelo-desistiu').classList.add('show');
+      }
+    }
+  });
+}
+
+// Countdown 5 4 3 2 1 GO
+function dueloIniciarCountdown(){
+  const overlay=document.getElementById('duelo-countdown');
+  const numEl=document.getElementById('duelo-countdown-num');
+  overlay.style.display='flex';
+  let n=5;
+  numEl.className='duelo-countdown-num';
+  numEl.textContent=n;
+  const iv=setInterval(()=>{
+    n--;
+    if(n>0){
+      // força re-trigger da animação
+      numEl.className='';
+      void numEl.offsetWidth;
+      numEl.className='duelo-countdown-num';
+      numEl.textContent=n;
+    } else if(n===0){
+      numEl.className='';
+      void numEl.offsetWidth;
+      numEl.className='duelo-countdown-go';
+      numEl.textContent='GO!';
+      playSound('daily');
+    } else {
+      clearInterval(iv);
+      overlay.style.display='none';
+      dueloIniciarJogo();
+    }
+  },1000);
+}
+
+// Inicia o jogo de duelo
+function dueloIniciarJogo(){
+  dueloIdx=0;
+  dueloPtsEu=0;dueloPtsOp=0;
+  dueloAcertosEu=0;dueloErrosEu=0;
+  dueloAcertosOp=0;dueloErrosOp=0;
+  document.getElementById('dscore-pts-eu').textContent=0;
+  document.getElementById('dscore-pts-op').textContent=0;
+  document.getElementById('duelo-lobby').style.display='none';
+  document.getElementById('duelo-jogo').style.display='flex';
+  // Aguarda 800ms para garantir que a presença dos dois jogadores
+  // já foi gravada no Firebase antes de mudar para 'jogando'
+  setTimeout(()=>{
+    if(dueloAtivo&&dueloRef)dueloRef.update({status:'jogando'});
+  },800);
+  dueloRenderPergunta();
+}
+
+// Renderiza pergunta do duelo
+function dueloRenderPergunta(){
+  if(dueloIdx>=dueloTotal){
+    dueloFinalizarJogo();return;
+  }
+  dueloRespondido=false;
+  document.getElementById('dscore-badge-eu').textContent='';
+  document.getElementById('dscore-badge-eu').style.background='transparent';
+  document.getElementById('dscore-badge-eu').style.border='none';
+  document.getElementById('dscore-pergs').textContent='P '+(dueloIdx+1)+'/'+dueloTotal;
+
+  // Busca pergunta pelo _id
+  const pid=dueloPerguntasIds[dueloIdx];
+  const p=todasPerguntas.find(q=>String(q._id)===String(pid))||todasPerguntas[dueloIdx]||todasPerguntas[0];
+
+  // Gera opções (igual ao jogo normal)
+  let opcoes=[],indiceCorreto=-1,respostaCorreta='';
+  let opts=p.opcoes||p.alternativas||p.respostas||p.options||[];
+  if(!Array.isArray(opts)&&typeof opts==='object'&&opts)opts=Object.values(opts);
+  if(opts.length===0){const t=[p.opcao1,p.opcao2,p.opcao3,p.opcao4].filter(Boolean);if(t.length>0)opts=t;}
+  if(opts.length>0){
+    opcoes=opts;respostaCorreta=String(p.resposta||p.respostaCorreta||opts[p.correta]||'');
+    if(p.correta!==undefined){const v=Number(p.correta);indiceCorreto=v>=opts.length?v-1:v;}
+    else{const rc=p.respostaCorreta||p.resposta||'';indiceCorreto=opts.findIndex(o=>String(o).toLowerCase().trim()===rc.toLowerCase().trim());}
+  } else {
+    const g=gerarOpcoes(p);
+    opcoes=g.opcoes;indiceCorreto=g.indiceCorreto;respostaCorreta=g.respostaCorreta||'';
+  }
+  window._dueloIndiceCorreto=indiceCorreto;
+  window._dueloRespostaCorreta=respostaCorreta;
+  window._dueloPergunta=p;
+
+  const dc=diffClass(p.dificuldade);
+  const texto=p.pergunta||p.questao||p.enunciado||'(sem texto)';
+  document.getElementById('duelo-content').innerHTML=`
+    <div class="question-box" style="margin:12px 14px">
+      <div class="question-meta">
+        <span class="question-num">PERGUNTA ${dueloIdx+1} / ${dueloTotal}</span>
+        ${p.categoria?`<span class="cat-chip">${p.categoria}`+'</span>':''}
+        ${p.dificuldade?`<span class="diff-chip ${dc}">${p.dificuldade}`+'</span>':''}
+      </div>
+      <p class="question-text">${texto}</p>
+    </div>
+    <div class="opcoes" style="padding:0 14px;gap:8px;display:flex;flex-direction:column">
+      ${opcoes.map((op,i)=>`<button class="opcao-btn" onclick="dueloResponder(${i})">
+        <span class="opcao-letter">${LETRAS[i]}.</span>
+        <span class="opcao-text">${op}</span>
+      </button>`).join('')}
+    </div>`;
+
+  dueloIniciarTimer();
+}
+
+// Timer do duelo
+function dueloIniciarTimer(){
+  dueloPararTimer();
+  dueloTimerSecs=TIMER_RAPIDO;
+  dueloAtualizarTimerUI();
+  dueloTimerInterval=setInterval(()=>{
+    dueloTimerSecs--;
+    dueloAtualizarTimerUI();
+    if(dueloTimerSecs<=0){
+      dueloPararTimer();
+      if(!dueloRespondido)dueloResponder(-1);// timeout = erro
+    }
+  },1000);
+}
+function dueloPararTimer(){if(dueloTimerInterval){clearInterval(dueloTimerInterval);dueloTimerInterval=null;}}
+function dueloAtualizarTimerUI(){
+  const secs=document.getElementById('duelo-timer-secs');
+  const bar=document.getElementById('duelo-timer-bar');
+  if(!secs||!bar)return;
+  secs.textContent=dueloTimerSecs;
+  const pct=(dueloTimerSecs/TIMER_RAPIDO)*100;
+  bar.style.width=pct+'%';
+  if(dueloTimerSecs<=5)bar.style.background='linear-gradient(to right,#D50000,#FF5252)';
+  else if(dueloTimerSecs<=8)bar.style.background='linear-gradient(to right,#A07820,#FFC107)';
+  else bar.style.background='linear-gradient(to right,var(--gold-dark),var(--gold-light))';
+}
+
+// Responder no duelo
+function dueloResponder(opcIdx){
+  if(dueloRespondido)return;
+  const tempoRestante=dueloTimerSecs;
+  dueloPararTimer();
+  dueloRespondido=true;
+
+  const correto=opcIdx===window._dueloIndiceCorreto&&opcIdx>=0;
+  const uid=auth.currentUser?.uid;
+
+  // Destaca botões
+  document.querySelectorAll('#duelo-content .opcao-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===window._dueloIndiceCorreto)btn.classList.add('correct');
+    else if(i===opcIdx&&!correto)btn.classList.add('wrong');
+  });
+
+  // Pontuação: acerto rápido = 20pts, normal = 10pts
+  if(correto){
+    const xp=(tempoRestante>8)?20:10;
+    dueloPtsEu+=xp;
+    dueloAcertosEu++;
+    playSound('acerto');
+  } else {
+    dueloErrosEu++;
+    playSound('erro');
+  }
+  document.getElementById('dscore-pts-eu').textContent=dueloPtsEu;
+
+  // Badge "respondeu"
+  const badge=document.getElementById('dscore-badge-eu');
+  badge.textContent=correto?'✓':'✗';
+  badge.style.background=correto?'rgba(0,200,83,.15)':'rgba(213,0,0,.15)';
+  badge.style.color=correto?'var(--green)':'var(--red-soft)';
+  badge.style.border=correto?'1px solid rgba(0,200,83,.4)':'1px solid rgba(213,0,0,.4)';
+
+  // Salva no Firebase
+  if(uid){
+    dueloRef.update({
+      ['placar/'+uid]:{
+        pts:dueloPtsEu,
+        acertos:dueloAcertosEu,
+        erros:dueloErrosEu,
+        pergAtual:dueloIdx+1,
+      }
+    });
+  }
+
+  // Avança após 1.2s
+  setTimeout(()=>{
+    dueloIdx++;
+    if(dueloIdx>=dueloTotal){
+      dueloFinalizarJogo();
+    } else {
+      dueloRenderPergunta();
+    }
+  },1200);
+}
+
+// Finalizar jogo (acabaram perguntas)
+function dueloFinalizarJogo(){
+  dueloPararTimer();
+  const uid=auth.currentUser?.uid;
+  if(uid){
+    dueloRef.update({status:'resultado',['placar/'+uid]:{
+      pts:dueloPtsEu,acertos:dueloAcertosEu,erros:dueloErrosEu,pergAtual:dueloTotal,finalizado:true
+    }});
+  }
+}
+
+// Ver resultado a qualquer momento
+function dueloVerResultadoAgora(){
+  dueloPararTimer();
+  const uid=auth.currentUser?.uid;
+  if(uid){
+    dueloRef.update({status:'resultado',['placar/'+uid]:{
+      pts:dueloPtsEu,acertos:dueloAcertosEu,erros:dueloErrosEu,pergAtual:dueloIdx,solicitouResultado:true
+    }});
+  }
+}
+
+// Mostrar popup de resultado
+function mostrarResultadoDuelo(sala){
+  if(document.getElementById('popup-duelo-resultado').classList.contains('show'))return;
+  const uid=auth.currentUser?.uid;
+  const meuPlacar=sala.placar&&uid?sala.placar[uid]:{pts:0,acertos:0,erros:0};
+  const opPlacar=sala.placar&&dueloOpUid?sala.placar[dueloOpUid]:{pts:0,acertos:0,erros:0};
+  const meuNome=userData?.nome||userData?.username||'Você';
+
+  const euGanhou=meuPlacar.pts>opPlacar.pts;
+  const empate=meuPlacar.pts===opPlacar.pts;
+
+  document.getElementById('dres-pts-eu').textContent=meuPlacar.pts||0;
+  document.getElementById('dres-pts-op').textContent=opPlacar.pts||0;
+  document.getElementById('dres-nome-eu').textContent=meuNome;
+  document.getElementById('dres-nome-op').textContent=dueloOpNome;
+  document.getElementById('dres-stats-eu').textContent=(meuPlacar.acertos||0)+'✅ '+(meuPlacar.erros||0)+'❌';
+  document.getElementById('dres-stats-op').textContent=(opPlacar.acertos||0)+'✅ '+(opPlacar.erros||0)+'❌';
+
+  const winnerLabel=document.getElementById('duelo-winner-label');
+  if(empate){
+    winnerLabel.textContent='🤝 Empate!';winnerLabel.style.color='var(--gold)';
+  } else if(euGanhou){
+    winnerLabel.textContent='🏆 Você Venceu!';winnerLabel.style.color='var(--green)';
+    playSound('conquista');
+  } else {
+    winnerLabel.textContent='😬 Você Perdeu…';winnerLabel.style.color='var(--red-soft)';
+  }
+
+  // Destaca vencedor visualmente
+  if(!empate){
+    document.getElementById('dres-av-eu').style.transform=euGanhou?'scale(1.15)':'scale(0.9)';
+    document.getElementById('dres-av-op').style.transform=euGanhou?'scale(0.9)':'scale(1.15)';
+  }
+
+  document.getElementById('popup-duelo-resultado').classList.add('show');
+}
+
+// Limpa estado do duelo
+function dueloLimparEstado(){
+  dueloPararTimer();
+  if(dueloRef){dueloRef.off();dueloRef=null;}
+  if(dueloPresRef){dueloPresRef.remove();dueloPresRef=null;}
+  dueloSalaId=null;dueloRole=null;dueloAtivo=false;
+  dueloPerguntasIds=[];dueloIdx=0;
+  dueloPtsEu=0;dueloPtsOp=0;
+  dueloAcertosEu=0;dueloErrosEu=0;
+  dueloAcertosOp=0;dueloErrosOp=0;
+  dueloOpNome='Oponente';dueloOpUid='';
+}
+
+// Sair do duelo (usuário fecha ou clica sair)
+function sairDuelo(){
+  const uid=auth.currentUser?.uid;
+  if(dueloRef&&uid){
+    // Remove presença = dispara detecção de abandono no oponente
+    db.ref('salas/'+dueloSalaId+'/presenca/'+uid).remove();
+  }
+  dueloLimparEstado();
+  document.getElementById('popup-duelo-resultado').classList.remove('show');
+  document.getElementById('popup-duelo-desistiu').classList.remove('show');
+  document.getElementById('duelo-countdown').style.display='none';
+  showScreen('home');
+}
+
+// Verifica se veio de link de convite
+function verificarLinkSala(){
+  const params=new URLSearchParams(location.search);
+  const sala=params.get('sala');
+  if(sala){
+    // Limpa URL sem recarregar
+    history.replaceState({},'',location.pathname);
+    if(auth.currentUser){
+      entrarSalaDuelo(sala);
+    } else {
+      sessionStorage.setItem('pendingSala',sala);
+    }
+  }
+}
+
+// Detecta quando usuário fecha aba ou muda de tela durante duelo
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&dueloAtivo&&dueloRef){
+    const uid=auth.currentUser?.uid;
+    if(uid)db.ref('salas/'+dueloSalaId+'/presenca/'+uid).remove();
+  }
+});
+window.addEventListener('beforeunload',()=>{
+  if(dueloAtivo&&dueloRef){
+    const uid=auth.currentUser?.uid;
+    if(uid)db.ref('salas/'+dueloSalaId+'/presenca/'+uid).remove();
+  }
+});
+
+// ═══════════ EVENT LISTENERS ═══════════
+
+// Login
+document.getElementById('btn-entrar').addEventListener('click',async()=>{
+  clearErr('login-error');
+  const email=document.getElementById('login-email').value.trim();
+  const senha=document.getElementById('login-senha').value;
+  if(!email||!senha){showErr('login-error','Preencha e-mail e senha.');return;}
+  setBtn('btn-entrar','Entrando…',true);
+  try{
+    await auth.signInWithEmailAndPassword(email,senha);
+    try{ analytics.logEvent('login',{method:'email'}); }catch(e){}
+  }
+  catch(e){showErr('login-error','E-mail ou senha incorretos.');setBtn('btn-entrar','⚔️  ENTRAR',false);}
+});
+document.getElementById('login-senha').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-entrar').click()});
+document.getElementById('btn-ir-cadastro').addEventListener('click',()=>{clearErr('login-error');showScreen('cadastro')});
+
+// Cadastro
+document.getElementById('btn-cadastrar').addEventListener('click',async()=>{
+  clearErr('cad-error');
+  const nome=document.getElementById('cad-nome').value.trim();
+  const username=document.getElementById('cad-user').value.trim().replace('@','').toLowerCase();
+  const email=document.getElementById('cad-email').value.trim();
+  const senha=document.getElementById('cad-senha').value;
+  const confirm=document.getElementById('cad-confirm').value;
+  if(!nome||!username||!email||!senha){showErr('cad-error','Preencha todos os campos.');return;}
+  if(nome.length>20){showErr('cad-error','Nome máximo 20 caracteres.');return;}
+  if(username.length<3||username.length>10){showErr('cad-error','@ usuário: entre 3 e 10 caracteres.');return;}
+  if(senha!==confirm){showErr('cad-error','As senhas não coincidem.');return;}
+  if(senha.length<6){showErr('cad-error','Senha mínimo 6 caracteres.');return;}
+  setBtn('btn-cadastrar','Criando conta…',true);
+  try{
+    // 1. Cria conta no Firebase Auth primeiro
+    const cred=await auth.createUserWithEmailAndPassword(email,senha);
+    const uid=cred.user.uid;
+    // 2. Agora que está autenticado, verifica @ disponível
+    try{
+      const snapU=await db.ref('users').orderByChild('username').equalTo(username).get();
+      if(snapU.exists()){
+        // @ já existe — apaga a conta recém criada e avisa
+        await cred.user.delete();
+        showErr('cad-error','Este @ já está em uso. Escolha outro.');
+        setBtn('btn-cadastrar','🙏 CADASTRAR',false);
+        return;
+      }
+    }catch(errCheck){
+      // Se não conseguiu verificar @, continua mesmo assim (não bloqueia o cadastro)
+      console.warn('Não foi possível verificar @ único:',errCheck);
+    }
+    // 3. Salva dados do usuário
+    await db.ref('users/'+uid).set({
+      nome,username,email,
+      acertos:0,erros:0,nivel:1,
+      usernameChangedAt:0,
+      criadoEm:Date.now()
+    });
+  }catch(e){
+    console.error('Erro cadastro:',e.code, e.message);
+    let msg='Erro ao criar conta. Tente novamente.';
+    if(e.code==='auth/email-already-in-use')msg='E-mail já cadastrado.';
+    else if(e.code==='auth/invalid-email')msg='E-mail inválido.';
+    else if(e.code==='auth/weak-password')msg='Senha muito fraca. Use no mínimo 6 caracteres.';
+    else if(e.code==='auth/network-request-failed')msg='Sem conexão. Verifique sua internet.';
+    showErr('cad-error',msg);
+    setBtn('btn-cadastrar','🙏 CADASTRAR',false);
+  }
+});
+document.getElementById('btn-ir-login').addEventListener('click',()=>{clearErr('cad-error');showScreen('login')});
+
+// Home
+document.getElementById('btn-avatar').addEventListener('click',openPerfil);
+document.getElementById('btn-perfil-close').addEventListener('click',closePerfil);
+document.getElementById('overlay-perfil').addEventListener('click',e=>{if(e.target===document.getElementById('overlay-perfil'))closePerfil()});
+document.getElementById('btn-resetar-historico').addEventListener('click',()=>{
+  document.getElementById('popup-reset-confirm').classList.add('show');
+});
+document.getElementById('btn-reset-cancelar').addEventListener('click',()=>{
+  document.getElementById('popup-reset-confirm').classList.remove('show');
+});
+document.getElementById('btn-reset-confirmar').addEventListener('click',resetarHistorico);
+document.getElementById('popup-reset-confirm').addEventListener('click',e=>{
+  if(e.target===document.getElementById('popup-reset-confirm'))
+    document.getElementById('popup-reset-confirm').classList.remove('show');
+});
+document.getElementById('btn-jogar').addEventListener('click',abrirSelecao);
+document.getElementById('btn-ranking').addEventListener('click',()=>{showScreen('ranking');carregarRanking()});
+document.getElementById('btn-sobre').addEventListener('click',()=>showScreen('sobre'));
+document.getElementById('btn-privacidade').addEventListener('click',()=>showScreen('privacidade'));
+document.getElementById('btn-conquistas').addEventListener('click',()=>{renderTelaConquistas();showScreen('conquistas')});
+document.getElementById('btn-duelo').addEventListener('click',abrirDuelo);
+
+// Conquistas
+document.getElementById('btn-conquistas-back').addEventListener('click',()=>showScreen('home'));
+
+// Duelo
+document.getElementById('btn-duelo-back').addEventListener('click',()=>{sairDuelo();});
+document.getElementById('btn-duelo-cancelar-sala').addEventListener('click',()=>{sairDuelo();});
+document.getElementById('btn-copiar-link').addEventListener('click',()=>{
+  const link=document.getElementById('duelo-link-text').textContent;
+  navigator.clipboard.writeText(link).then(()=>{
+    const btn=document.getElementById('btn-copiar-link');
+    btn.textContent='✅  Copiado!';
+    setTimeout(()=>{btn.textContent='📋  Copiar Link';},2000);
+  }).catch(()=>{
+    // fallback para mobile
+    const el=document.createElement('textarea');
+    el.value=link;el.style.position='fixed';el.style.opacity='0';
+    document.body.appendChild(el);el.select();document.execCommand('copy');
+    document.body.removeChild(el);
+    const btn=document.getElementById('btn-copiar-link');
+    btn.textContent='✅  Copiado!';
+    setTimeout(()=>{btn.textContent='📋  Copiar Link';},2000);
+  });
+});
+document.getElementById('btn-duelo-sair-jogo').addEventListener('click',()=>{sairDuelo();});
+document.getElementById('btn-duelo-ver-resultado').addEventListener('click',dueloVerResultadoAgora);
+document.getElementById('btn-duelo-jogar-novo').addEventListener('click',()=>{
+  document.getElementById('popup-duelo-resultado').classList.remove('show');
+  dueloLimparEstado();
+  abrirDuelo();
+});
+document.getElementById('btn-duelo-home').addEventListener('click',()=>sairDuelo());
+document.getElementById('btn-desistiu-home').addEventListener('click',()=>sairDuelo());
+
+// Seleção
+document.getElementById('btn-sel-back').addEventListener('click',()=>showScreen('home'));
+document.getElementById('btn-iniciar-jogo').addEventListener('click',iniciarJogo);
+
+// Jogo
+document.getElementById('btn-proxima').addEventListener('click',proximaPergunta);
+document.getElementById('btn-popup-proxima').addEventListener('click',proximaPergunta);
+document.getElementById('btn-jogo-sair').addEventListener('click',()=>{
+  pararTimer();
+  document.getElementById('popup-resultado').classList.remove('show');
+  document.getElementById('popup-gameover').classList.remove('show');
+  showScreen('home');updateHomeUI();
+});
+
+// Game Over
+document.getElementById('btn-go-jogar-novo').addEventListener('click',()=>{
+  document.getElementById('popup-gameover').classList.remove('show');
+  abrirSelecao();
+});
+document.getElementById('btn-go-home').addEventListener('click',()=>{
+  document.getElementById('popup-gameover').classList.remove('show');
+  showScreen('home');updateHomeUI();
+});
+
+// Ranking
+document.getElementById('btn-ranking-back').addEventListener('click',()=>{
+  if(rankingUnsub){rankingUnsub();rankingUnsub=null;}
+  showScreen('home');
+});
+document.getElementById('btn-rk-perfil-close').addEventListener('click',()=>document.getElementById('popup-perfil-ranking').classList.remove('show'));
+document.getElementById('popup-perfil-ranking').addEventListener('click',e=>{if(e.target===document.getElementById('popup-perfil-ranking'))document.getElementById('popup-perfil-ranking').classList.remove('show')});
+
+// Sobre / Privacidade
+document.getElementById('btn-sobre-back').addEventListener('click',()=>showScreen('home'));
+document.getElementById('btn-priv-back').addEventListener('click',()=>showScreen('home'));
+
+// ═══════════════════════════════════════════════════
+//  ADSENSE — INICIALIZAÇÃO DOS SLOTS ESTÁTICOS
+//  Descomente quando o AdSense estiver aprovado:
+// ═══════════════════════════════════════════════════
+
+</script>
+
+<!-- ═══ BANNER DE COOKIES — ESTILO INTEGRADO ═══ -->
+<div id="cookie-banner" style="
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  background:linear-gradient(180deg,rgba(13,13,13,0) 0%,rgba(13,13,13,.98) 18%,#0D0D0D 100%);
+  padding:28px 20px 20px;
+  z-index:9999;
+  display:none;
+">
+  <!-- Ícone e título -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#A07820,#FFD700);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🍪</div>
+    <p style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold)">Privacidade & Cookies</p>
+  </div>
+
+  <!-- Texto -->
+  <p style="font-family:'Lato',sans-serif;font-size:12px;color:#aaa;line-height:1.6;margin-bottom:14px">
+    Usamos <strong style="color:#fff">cookies</strong> e tecnologias similares para melhorar sua experiência, analisar o uso do app e exibir <strong style="color:#fff">anúncios personalizados</strong> via Google AdSense. Ao aceitar, você concorda com nossa
+    <span onclick="showScreen('privacidade');recusarCookies()" style="color:var(--gold);cursor:pointer;text-decoration:underline;font-weight:700">Política de Privacidade</span>.
+  </p>
+
+  <!-- Botões -->
+  <div style="display:flex;gap:10px;margin-bottom:8px">
+    <button onclick="aceitarCookies()" style="
+      flex:2;padding:13px;border-radius:10px;border:none;cursor:pointer;
+      background:linear-gradient(135deg,#A07820,#D4AF37,#FFD700);
+      color:#0D0D0D;font-family:'Cinzel',serif;font-weight:700;font-size:14px;
+      letter-spacing:.5px;
+    ">✅  Aceitar Tudo</button>
+    <button onclick="recusarCookies()" style="
+      flex:1;padding:13px;border-radius:10px;cursor:pointer;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);
+      color:#aaa;font-family:'Lato',sans-serif;font-size:13px;
+    ">Recusar</button>
+  </div>
+  <p style="font-size:10px;color:var(--dim);text-align:center">Você pode alterar suas preferências na Política de Privacidade</p>
+</div>
+
+<script>
+function getCookieConsent(){
+  try{ return localStorage.getItem('cookieConsent'); }
+  catch(e){ return sessionStorage.getItem('cookieConsent'); }
+}
+function setCookieConsent(val){
+  try{ localStorage.setItem('cookieConsent',val); }
+  catch(e){ sessionStorage.setItem('cookieConsent',val); }
+}
+function aceitarCookies(){
+  setCookieConsent('accepted');
+  document.getElementById('cookie-banner').style.display='none';
+  if(window.adsbygoogle){
+    (window.adsbygoogle=window.adsbygoogle||[]).push({});
+    (window.adsbygoogle=window.adsbygoogle||[]).push({});
+    (window.adsbygoogle=window.adsbygoogle||[]).push({});
+  }
+}
+function recusarCookies(){
+  setCookieConsent('declined');
+  document.getElementById('cookie-banner').style.display='none';
+}
+if(!getCookieConsent()){
+  setTimeout(()=>{
+    document.getElementById('cookie-banner').style.display='block';
+  },2000);
+}
+</script>
+</body>
+</html>
