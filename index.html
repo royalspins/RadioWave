@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Importador de Versículos — Elohim Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:      #1a0f00;
+    --parch:    #f5ead0;
+    --parch2:   #ede0bc;
+    --gold:     #b8860b;
+    --gold-l:   #d4a017;
+    --gold-ll:  #f0c040;
+    --rust:     #8b3a0f;
+    --deep:     #0d0800;
+    --card-bg:  rgba(20,12,2,0.92);
+    --border:   rgba(184,134,11,0.3);
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Josefin Sans', sans-serif;
+    background: var(--deep);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px 60px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ── Fundo com textura de pergaminho escuro ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 0%,   rgba(180,120,10,.12) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 40% at 10% 100%,  rgba(139,58,15,.1)  0%, transparent 55%),
+      radial-gradient(ellipse 40% 30% at 90% 50%,   rgba(180,120,10,.07) 0%, transparent 50%),
+      linear-gradient(160deg, #0d0800 0%, #160d02 40%, #0d0800 100%);
+  }
+
+  /* ── Partículas de luz flutuantes ── */
+  .motes { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .mote {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(240,192,64,.7) 0%, transparent 70%);
+    animation: floatMote var(--d,8s) var(--dl,0s) ease-in-out infinite alternate;
+  }
+  @keyframes floatMote {
+    from { transform: translate(0,0) scale(1);   opacity: var(--oa,.15); }
+    to   { transform: translate(var(--tx,10px), var(--ty,-20px)) scale(1.3); opacity: var(--ob,.35); }
+  }
+
+  /* ── Wrapper ── */
+  .wrapper {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 580px;
+    animation: riseIn .9s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes riseIn {
+    from { opacity:0; transform: translateY(40px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .header-cross {
+    display: inline-block;
+    font-size: 44px;
+    line-height: 1;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 0 18px rgba(240,192,64,.7));
+    animation: crossGlow 3s ease-in-out infinite;
+  }
+  @keyframes crossGlow {
+    0%,100% { filter: drop-shadow(0 0 14px rgba(240,192,64,.5)); }
+    50%      { filter: drop-shadow(0 0 32px rgba(240,192,64,.95)); }
+  }
+  .header h1 {
+    font-family: 'IM Fell English', serif;
+    font-size: clamp(22px, 5vw, 32px);
+    color: var(--gold-ll);
+    letter-spacing: .04em;
+    text-shadow: 0 2px 20px rgba(240,192,64,.25);
+    line-height: 1.2;
+  }
+  .header p {
+    font-size: 13px;
+    color: rgba(240,192,64,.4);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+  .ornament {
+    display: flex; align-items: center; gap: 10px;
+    margin: 14px auto 0; width: 280px;
+  }
+  .ornament::before, .ornament::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(to right, transparent, rgba(184,134,11,.6));
+  }
+  .ornament::after { background: linear-gradient(to left, transparent, rgba(184,134,11,.6)); }
+  .ornament span { color: var(--gold); font-size: 13px; }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 36px 32px;
+    box-shadow:
+      0 0 0 1px rgba(184,134,11,.06),
+      0 30px 80px rgba(0,0,0,.75),
+      inset 0 1px 0 rgba(240,192,64,.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; inset: -1px; border-radius: 19px;
+    background: linear-gradient(135deg, rgba(184,134,11,.18) 0%, transparent 45%, rgba(139,58,15,.1) 100%);
+    pointer-events: none;
+  }
+  /* Canto decorativo */
+  .card::after {
+    content: '✦';
+    position: absolute; top: 14px; right: 18px;
+    font-size: 11px; color: rgba(184,134,11,.25);
+    pointer-events: none;
+  }
+
+  /* ── Drop zone ── */
+  .drop-zone {
+    border: 2px dashed rgba(184,134,11,.28);
+    border-radius: 14px;
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .25s ease;
+    background: rgba(184,134,11,.03);
+    position: relative;
+    overflow: hidden;
+  }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-zone:hover, .drop-zone.over {
+    border-color: var(--gold-l);
+    background: rgba(184,134,11,.08);
+    box-shadow: 0 0 28px rgba(184,134,11,.12);
+  }
+  .drop-icon {
+    font-size: 40px; display: block; margin-bottom: 12px;
+    transition: transform .3s ease;
+  }
+  .drop-zone:hover .drop-icon { transform: translateY(-5px) scale(1.05); }
+  .drop-title {
+    font-family: 'IM Fell English', serif;
+    font-size: 15px; color: var(--gold-l); letter-spacing: .06em;
+    display: block; margin-bottom: 4px;
+  }
+  .drop-hint { font-size: 13px; color: rgba(240,192,64,.35); font-style: italic; }
+  .file-chosen {
+    margin-top: 10px; font-size: 13px;
+    color: var(--gold-ll); font-style: italic;
+    min-height: 18px; transition: opacity .3s;
+  }
+
+  /* ── Info chips ── */
+  .chips {
+    display: flex; gap: 10px; margin-top: 20px;
+    opacity: 0; transform: translateY(6px);
+    transition: all .35s ease; pointer-events: none;
+  }
+  .chips.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .chip {
+    flex: 1; background: rgba(184,134,11,.07);
+    border: 1px solid rgba(184,134,11,.18);
+    border-radius: 10px; padding: 12px 8px; text-align: center;
+  }
+  .chip-val {
+    display: block; font-family: 'IM Fell English', serif;
+    font-size: 24px; color: var(--gold-ll);
+  }
+  .chip-lbl {
+    display: block; font-size: 10px; letter-spacing: .12em;
+    color: rgba(240,192,64,.4); margin-top: 3px; text-transform: uppercase;
+  }
+
+  /* ── Botão ── */
+  .btn {
+    width: 100%; margin-top: 24px; padding: 17px;
+    font-family: 'IM Fell English', serif;
+    font-size: 16px; letter-spacing: .08em;
+    border: none; border-radius: 12px; cursor: pointer;
+    background: linear-gradient(135deg, #b8860b 0%, #d4a017 45%, #b8860b 100%);
+    background-size: 200% 100%;
+    color: #0d0800; font-weight: 400;
+    transition: all .3s ease;
+    box-shadow: 0 4px 24px rgba(184,134,11,.35);
+    position: relative; overflow: hidden;
+  }
+  .btn:hover:not(:disabled) {
+    background-position: 100% 0;
+    box-shadow: 0 6px 36px rgba(184,134,11,.55);
+    transform: translateY(-2px);
+  }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+  .btn::after {
+    content: ''; position: absolute;
+    top: -50%; left: -60%; width: 55%; height: 200%;
+    background: rgba(255,255,255,.18);
+    transform: skewX(-18deg);
+    transition: left .5s ease;
+  }
+  .btn:hover:not(:disabled)::after { left: 115%; }
+
+  /* ── Progresso ── */
+  .progress-wrap {
+    margin-top: 24px;
+    opacity: 0; transform: translateY(6px);
+    transition: all .35s ease;
+  }
+  .progress-wrap.show { opacity: 1; transform: translateY(0); }
+  .progress-row {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 8px;
+  }
+  .progress-label {
+    font-size: 11px; color: rgba(240,192,64,.4);
+    letter-spacing: .1em; text-transform: uppercase; font-style: italic;
+  }
+  .progress-pct {
+    font-family: 'IM Fell English', serif;
+    font-size: 14px; color: var(--gold-l);
+  }
+  .track {
+    height: 8px; background: rgba(255,255,255,.05);
+    border-radius: 100px; overflow: hidden;
+    border: 1px solid rgba(184,134,11,.1);
+  }
+  .fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #8b3a0f, #d4a017, #f0c040);
+    background-size: 200% 100%;
+    border-radius: 100px;
+    transition: width .5s ease;
+    animation: shimmer 2.5s linear infinite;
+    position: relative;
+  }
+  .fill::after {
+    content: '';
+    position: absolute; right: -1px; top: 50%;
+    transform: translateY(-50%);
+    width: 10px; height: 10px;
+    background: var(--gold-ll);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--gold-l);
+  }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  /* ── Log ── */
+  .log {
+    margin-top: 16px;
+    background: rgba(0,0,0,.35);
+    border: 1px solid rgba(184,134,11,.1);
+    border-radius: 10px;
+    padding: 14px 16px;
+    max-height: 150px; overflow-y: auto;
+    font-size: 12px; font-family: 'Courier New', monospace;
+    line-height: 1.8;
+    scrollbar-width: thin; scrollbar-color: var(--gold) transparent;
+  }
+  .log::-webkit-scrollbar { width: 3px; }
+  .log::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+  .log-line { display: flex; gap: 8px; }
+  .log-t { color: rgba(240,192,64,.3); flex-shrink: 0; }
+  .log-m.i { color: rgba(240,220,160,.7); }
+  .log-m.s { color: #86efac; }
+  .log-m.e { color: #fca5a5; }
+  .log-m.w { color: var(--gold-l); }
+
+  /* ── Banner de conclusão ── */
+  .done {
+    display: none; margin-top: 20px;
+    background: rgba(74,222,128,.07);
+    border: 1px solid rgba(74,222,128,.22);
+    border-radius: 12px; padding: 18px; text-align: center;
+  }
+  .done.show { display: block; animation: pop .5s cubic-bezier(.175,.885,.32,1.275) both; }
+  @keyframes pop { from{opacity:0;transform:scale(.88)} to{opacity:1;transform:scale(1)} }
+  .done-ico { font-size: 28px; display: block; margin-bottom: 6px; }
+  .done p { color: #86efac; font-size: 14px; font-style: italic; }
+  .done strong { font-family: 'IM Fell English', serif; font-size: 15px; display: block; margin-bottom: 4px; }
+
+  /* ── Verso bíblico ── */
+  footer {
+    position: relative; z-index: 1;
+    text-align: center; margin-top: 36px;
+    animation: riseIn 1s .5s ease both;
+  }
+  footer blockquote {
+    font-family: 'IM Fell English', serif;
+    font-style: italic; font-size: 14px;
+    color: rgba(240,192,64,.3); line-height: 1.7;
+    max-width: 380px; margin: 0 auto;
+  }
+  footer cite {
+    display: block; margin-top: 5px;
+    font-size: 11px; letter-spacing: .12em;
+    color: rgba(184,134,11,.25); font-style: normal;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- Motes flutuantes -->
+<div class="motes" id="motes"></div>
+
+<div class="wrapper">
+
+  <header class="header">
+    <span class="header-cross">✝</span>
+    <h1>Importador de Versículos</h1>
+    <p>Elohim Quest · Escrituras Sagradas</p>
+    <div class="ornament"><span>✦</span></div>
+  </header>
+
+  <div class="card">
+
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".json">
+      <span class="drop-icon">📜</span>
+      <span class="drop-title">Selecionar Arquivo JSON</span>
+      <span class="drop-hint">Arraste ou clique aqui</span>
+      <div class="file-chosen" id="fileChosen">Nenhum arquivo selecionado</div>
+    </div>
+
+    <div class="chips" id="chips">
+      <div class="chip">
+        <span class="chip-val" id="cTotal">0</span>
+        <span class="chip-lbl">Versículos</span>
+      </div>
+      <div class="chip">
+        <span class="chip-val" id="cSent">0</span>
+        <span class="chip-lbl">Enviados</span>
+      </div>
+      <div class="chip">
+        <span class="chip-val" id="cLeft">0</span>
+        <span class="chip-lbl">Restantes</span>
+      </div>
+    </div>
+
+    <button class="btn" id="btnSend" disabled onclick="importar()">
+      ✦ &nbsp; Enviar para Firebase &nbsp; ✦
+    </button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-row">
+        <span class="progress-label">Progresso</span>
+        <span class="progress-pct" id="pct">0%</span>
+      </div>
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <div class="log" id="logEl"></div>
+    </div>
+
+    <div class="done" id="doneBanner">
+      <span class="done-ico">✅</span>
+      <strong>Importação Concluída!</strong>
+      <p id="doneText"></p>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  <blockquote>
+    "A tua palavra é lâmpada que ilumina os meus passos e luz que clareia o meu caminho."
+    <cite>— Salmos 119:105</cite>
+  </blockquote>
+</footer>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  /* ── Firebase ── */
+  const app = initializeApp({
+    apiKey: "AIzaSyCjdAJtbOh0dxYsIUUCc8iVN686Yj3hO48",
+    authDomain: "royalcyber-elohimquest.firebaseapp.com",
+    databaseURL: "https://royalcyber-elohimquest-default-rtdb.firebaseio.com",
+    projectId: "royalcyber-elohimquest",
+    storageBucket: "royalcyber-elohimquest.firebasestorage.app",
+    messagingSenderId: "525330030955",
+    appId: "1:525330030955:web:24ee7c0a171f28c2dbac2e",
+    measurementId: "G-JSF316MZYX"
+  });
+  const db = getDatabase(app);
+
+  /* ── Motes ── */
+  const motesCont = document.getElementById('motes');
+  for(let i=0;i<18;i++){
+    const m = document.createElement('div');
+    const sz = 2 + Math.random()*4;
+    m.className = 'mote';
+    m.style.cssText = `
+      width:${sz}px; height:${sz}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --d:${6+Math.random()*8}s; --dl:${Math.random()*8}s;
+      --tx:${-15+Math.random()*30}px; --ty:${-30+Math.random()*20}px;
+      --oa:${.08+Math.random()*.15}; --ob:${.2+Math.random()*.3};
+    `;
+    motesCont.appendChild(m);
+  }
+
+  /* ── State ── */
+  let dados = [];
+
+  const fileInput   = document.getElementById('fileInput');
+  const dropZone    = document.getElementById('dropZone');
+  const fileChosen  = document.getElementById('fileChosen');
+  const btnSend     = document.getElementById('btnSend');
+  const chips       = document.getElementById('chips');
+  const progressWrap= document.getElementById('progressWrap');
+  const fill        = document.getElementById('fill');
+  const pct         = document.getElementById('pct');
+  const logEl       = document.getElementById('logEl');
+  const doneBanner  = document.getElementById('doneBanner');
+  const doneText    = document.getElementById('doneText');
+  const cTotal      = document.getElementById('cTotal');
+  const cSent       = document.getElementById('cSent');
+  const cLeft       = document.getElementById('cLeft');
+
+  /* ── Drag & Drop ── */
+  dropZone.addEventListener('dragover', e=>{ e.preventDefault(); dropZone.classList.add('over'); });
+  dropZone.addEventListener('dragleave', ()=>dropZone.classList.remove('over'));
+  dropZone.addEventListener('drop', e=>{ e.preventDefault(); dropZone.classList.remove('over'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', ()=>{ if(fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+  async function handleFile(file){
+    if(!file.name.endsWith('.json')){ log('Apenas arquivos .json são aceitos.','e'); return; }
+    try{
+      const text = await file.text();
+      dados = JSON.parse(text);
+      if(!Array.isArray(dados)) throw new Error('O JSON deve ser um array.');
+      fileChosen.textContent = '📄 ' + file.name;
+      cTotal.textContent = dados.length;
+      cSent.textContent  = 0;
+      cLeft.textContent  = dados.length;
+      chips.classList.add('show');
+      progressWrap.classList.add('show');
+      btnSend.disabled = false;
+      doneBanner.classList.remove('show');
+      log(`Arquivo carregado: ${dados.length} versículos encontrados.`, 's');
+    } catch(err){
+      log('Erro ao ler o arquivo: ' + err.message, 'e');
+    }
+  }
+
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  function log(msg, type='i'){
+    const now  = new Date();
+    const time = now.toLocaleTimeString('pt-BR',{hour12:false});
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.innerHTML = `<span class="log-t">[${time}]</span><span class="log-m ${type}">${msg}</span>`;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function setProgress(sent, total){
+    const p = Math.round((sent/total)*100);
+    fill.style.width = p+'%';
+    pct.textContent  = p+'%';
+    cSent.textContent = sent;
+    cLeft.textContent = total - sent;
+  }
+
+  window.importar = async function(){
+    if(!dados.length) return;
+    btnSend.disabled = true;
+    doneBanner.classList.remove('show');
+    log('Iniciando envio para Firebase...', 'w');
+
+    const total = dados.length;
+    let enviados = 0, erros = 0;
+
+    for(let i=0; i<total; i++){
+      try{
+        await push(ref(db,'elohim'), dados[i]);
+        enviados++;
+      } catch(e){
+        erros++;
+        log(`Erro no item ${i+1}: ${e.message}`, 'e');
+      }
+
+      setProgress(enviados+erros, total);
+
+      if((i+1) % 20 === 0 || i === total-1){
+        log(`Enviados: ${enviados} / ${total}${erros?' ('+erros+' erros)':''}`, 'i');
+        await sleep(300);
+      }
+    }
+
+    fill.style.width = '100%';
+    pct.textContent  = '100%';
+    log(`✅ Concluído! ${enviados} enviados${erros?', '+erros+' erro(s)':''}.`, 's');
+    doneText.textContent = `${enviados} versículo${enviados!==1?'s':''} enviado${enviados!==1?'s':''} com sucesso${erros?' · '+erros+' erro(s)':''}!`;
+    doneBanner.classList.add('show');
+    btnSend.disabled = false;
+  };
+</script>
+</body>
+</html>
