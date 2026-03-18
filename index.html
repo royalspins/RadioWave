@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Elohim Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+:root {
+  --gold:#D4AF37; --gold-light:#FFD700; --gold-dark:#A07820;
+  --black:#0D0D0D; --surface:#161410; --surface2:#1E1A12; --surface3:#252015;
+  --white:#FFFFFF; --green:#00C853; --red:#D50000; --red-soft:#FF5252;
+  --muted:#888; --dim:#555; --orange:#FF6D00;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;min-height:100vh;background:#0a0800;font-family:'Lato',sans-serif;color:var(--white);overflow:hidden}
+::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-track{background:var(--black)} ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px}
+
+#app{max-width:430px;min-height:100vh;margin:0 auto;background:var(--surface);position:relative}
+.screen{width:100%;min-height:100vh;display:flex;flex-direction:column;animation:fadeInUp .3s ease both}
+#screen-jogo{height:100vh;min-height:unset}
+.screen.hidden{display:none!important}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes popIn{0%{opacity:0;transform:scale(.65)}70%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+@keyframes pulseGold{0%,100%{box-shadow:0 0 16px #D4AF3755,0 0 32px #D4AF3722}50%{box-shadow:0 0 28px #D4AF3799,0 0 52px #D4AF3744}}
+@keyframes timerShrink{from{width:100%}to{width:0%}}
+@keyframes streakPop{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+/* TYPOGRAPHY */
+.gold-title{font-family:'Cinzel Decorative',serif;background:linear-gradient(135deg,var(--gold-dark) 0%,var(--gold-light) 35%,var(--gold) 55%,var(--gold-light) 75%,var(--gold-dark) 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3.5s linear infinite}
+
+/* BUTTONS */
+.btn-gold{display:block;width:100%;padding:15px 20px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light),var(--gold));background-size:200% auto;color:#0D0D0D;font-family:'Cinzel',serif;font-weight:700;font-size:15px;letter-spacing:1px;border:none;border-radius:11px;cursor:pointer;transition:background-position .4s,transform .15s;text-align:center}
+.btn-gold:hover{background-position:right center;transform:scale(1.02)}
+.btn-gold:active{transform:scale(.97)}
+.btn-gold:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-gold.pulse{animation:pulseGold 2.2s ease-in-out infinite}
+.btn-outline{display:block;width:100%;padding:13px 20px;background:transparent;color:var(--gold);font-family:'Cinzel',serif;font-weight:700;font-size:14px;letter-spacing:1px;border:1.5px solid rgba(212,175,55,.5);border-radius:11px;cursor:pointer;transition:border-color .2s,background .2s,transform .1s;text-align:center}
+.btn-outline:hover{border-color:var(--gold);background:rgba(212,175,55,.08)}
+.btn-outline:active{transform:scale(.97)}
+.btn-outline.active{background:rgba(212,175,55,.18);border-color:var(--gold);color:var(--gold-light)}
+
+/* INPUTS */
+.field{margin-bottom:14px}
+.field label{display:block;color:var(--gold);font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:1.5px;margin-bottom:6px}
+.field input{width:100%;padding:12px 14px;background:var(--surface2);border:1.5px solid rgba(212,175,55,.3);border-radius:8px;color:var(--white);font-family:'Lato',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold)}
+.field input::placeholder{color:#555}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0}
+.divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.4))}
+.divider-line.r{background:linear-gradient(to left,transparent,rgba(212,175,55,.4))}
+.divider-dot{color:var(--gold);font-size:10px}
+
+/* BADGE */
+.stat-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-family:'Cinzel',serif;font-size:13px;font-weight:700}
+
+/* ERROR */
+.error-box{background:rgba(213,0,0,.15);border:1px solid rgba(213,0,0,.5);border-radius:8px;padding:11px 14px;color:var(--red-soft);font-size:13px;margin-bottom:16px;display:none}
+.error-box.show{display:block}
+
+/* SCREEN HEADER */
+.screen-header{display:flex;align-items:center;gap:12px;padding:16px 18px;background:linear-gradient(180deg,#1a1400,var(--surface));border-bottom:1px solid rgba(212,175,55,.2)}
+.screen-header .back-btn{background:transparent;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:2px 6px;line-height:1}
+.screen-header .title{font-family:'Cinzel',serif;font-weight:700;font-size:18px;color:var(--gold);letter-spacing:1px}
+
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:all}
+.sheet{width:100%;max-width:430px;background:var(--surface2);border-top:2px solid rgba(212,175,55,.6);border-radius:20px 20px 0 0;padding:24px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.6,1)}
+.overlay.show .sheet{transform:translateY(0)}
+.popup-center{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .2s}
+.popup-center.show{opacity:1;pointer-events:all}
+.popup-box{background:var(--surface2);border-radius:20px;padding:28px 24px;width:88%;max-width:320px;text-align:center;border:2px solid #333;animation:popIn .4s ease both}
+
+/* ═══ LOADING ═══ */
+#screen-loading{background:radial-gradient(ellipse at center,#1a1200,var(--black));align-items:center;justify-content:center;gap:22px}
+.spinner-wrap{position:relative;width:88px;height:88px}
+.spinner-ring{position:absolute;inset:0;border:3px solid transparent;border-top-color:var(--gold);border-right-color:rgba(212,175,55,.3);border-radius:50%;animation:spin 1.1s linear infinite}
+.spinner-ring2{position:absolute;inset:14px;border:2px solid transparent;border-bottom-color:var(--gold-light);border-radius:50%;animation:spin 1.8s linear infinite reverse}
+.spinner-cross{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px}
+
+/* ═══ LOGIN / CADASTRO ═══ */
+.login-hero{background:radial-gradient(ellipse at center top,#2a1f00,var(--surface));padding:52px 30px 32px;text-align:center;border-bottom:1px solid rgba(212,175,55,.2)}
+.login-form{padding:28px 24px;flex:1;overflow:hidden}
+.form-title{color:var(--gold);font-family:'Cinzel',serif;font-size:16px;text-align:center;margin-bottom:20px}
+
+/* ═══ HOME ═══ */
+.home-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,#1a1400,var(--surface));border-bottom:1px solid rgba(212,175,55,.2)}
+.home-header .username{font-family:'Cinzel',serif;color:var(--gold);font-size:13px;font-weight:700}
+.home-header .header-right{display:flex;gap:8px;align-items:center}
+.avatar-btn{background:rgba(212,175,55,.15);border:2px solid rgba(212,175,55,.5);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+.home-hero{background:radial-gradient(ellipse at center,#2a1f00,var(--surface));padding:24px 20px;text-align:center;border-bottom:1px solid rgba(212,175,55,.15)}
+.nivel-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.5);border-radius:20px;padding:6px 16px;margin-top:12px;font-family:'Cinzel',serif;color:var(--gold);font-size:12px;font-weight:700}
+.home-btns{padding:16px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
+.drawer-btn{background:transparent;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:4px 6px;line-height:1;display:flex;align-items:center;justify-content:center}
+
+/* ═══ PERFIL MODAL ═══ */
+.perfil-handle{width:40px;height:4px;background:rgba(212,175,55,.3);border-radius:2px;margin:0 auto 20px}
+.progress-bar{background:#2a2a2a;border-radius:10px;height:10px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(to right,var(--gold-dark),var(--gold-light));border-radius:10px;transition:width .5s ease}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-card{background:var(--surface);border-radius:11px;padding:12px 8px;text-align:center;border-width:1px;border-style:solid}
+
+/* ═══ RANKING ═══ */
+.ranking-list{padding:14px;flex:1;overflow-y:auto}
+.rank-item{display:flex;align-items:center;gap:12px;border-radius:12px;padding:13px 15px;margin-bottom:8px;border-width:1px;border-style:solid;animation:fadeInUp .3s ease both}
+
+/* ═══ DRAWER ═══ */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;opacity:0;pointer-events:none;transition:opacity .25s}
+.drawer-overlay.show{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:300px;background:var(--surface2);border-right:1px solid rgba(212,175,55,.3);z-index:500;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .3s cubic-bezier(.32,1,.6,1)}
+.drawer-overlay.show .drawer{transform:translateX(0)}
+.drawer-top{background:radial-gradient(ellipse at top left,#2a1f00,var(--surface2));padding:48px 24px 24px;border-bottom:1px solid rgba(212,175,55,.2)}
+.drawer-item{display:flex;align-items:center;gap:14px;padding:14px 24px;color:var(--white);font-family:'Cinzel',serif;font-size:14px;font-weight:700;cursor:pointer;border:none;background:transparent;width:100%;text-align:left;transition:background .2s,color .2s;border-left:3px solid transparent}
+.drawer-item:hover{background:rgba(212,175,55,.08);color:var(--gold);border-left-color:var(--gold)}
+.drawer-separator{height:1px;background:rgba(212,175,55,.15);margin:8px 24px}
+.drawer-logout{padding:20px 24px;border-top:1px solid rgba(212,175,55,.15)}
+.drawer-logout button{display:flex;align-items:center;gap:10px;background:transparent;border:1px solid rgba(213,0,0,.4);border-radius:10px;padding:12px 16px;width:100%;color:var(--red-soft);font-family:'Cinzel',serif;font-size:13px;cursor:pointer;transition:background .2s}
+.drawer-logout button:hover{background:rgba(213,0,0,.1)}
+
+/* ═══ SELEÇÃO DE MODO/FILTRO ═══ */
+#screen-selecao{overflow:hidden}
+.selecao-header{background:linear-gradient(180deg,#1a1400,var(--surface));padding:16px 18px;border-bottom:1px solid rgba(212,175,55,.2);display:flex;align-items:center;gap:12px}
+.selecao-body{flex:1;padding:20px;overflow:hidden;display:flex;flex-direction:column;gap:18px}
+.sel-section-title{font-family:'Cinzel',serif;color:var(--gold);font-size:13px;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.modo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modo-card{background:var(--surface2);border:1.5px solid rgba(212,175,55,.25);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px}
+.modo-card:hover{border-color:var(--gold);background:rgba(212,175,55,.08)}
+.modo-card.selected{border-color:var(--gold);background:rgba(212,175,55,.15);box-shadow:0 0 12px rgba(212,175,55,.2)}
+.modo-card .modo-icon{font-size:28px}
+.modo-card .modo-nome{font-family:'Cinzel',serif;color:var(--gold);font-size:13px;font-weight:700}
+.modo-card .modo-desc{color:var(--muted);font-size:11px;line-height:1.4}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 14px;border-radius:20px;border:1.5px solid rgba(212,175,55,.3);background:transparent;color:var(--muted);font-family:'Cinzel',serif;font-size:12px;cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--gold);color:var(--gold)}
+.chip.selected{border-color:var(--gold);background:rgba(212,175,55,.18);color:var(--gold-light)}
+.chip.all{border-color:rgba(212,175,55,.5);color:var(--gold)}
+.chip.all.selected{background:rgba(212,175,55,.25)}
+
+/* ═══ JOGO ═══ */
+.jogo-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:linear-gradient(180deg,#1a1400,var(--surface));border-bottom:1px solid rgba(212,175,55,.2);flex-shrink:0;gap:8px}
+.jogo-topbar .ornament{color:var(--gold);opacity:.5;font-size:11px}
+
+/* Timer bar */
+.timer-wrap{flex-shrink:0;padding:0 16px 8px}
+.timer-bar-bg{background:rgba(212,175,55,.15);border-radius:4px;height:5px;overflow:hidden;position:relative}
+.timer-bar-fill{height:100%;border-radius:4px;background:linear-gradient(to right,var(--gold-dark),var(--gold-light));transition:background .5s}
+.timer-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.timer-secs{font-family:'Cinzel',serif;font-size:12px;color:var(--gold);font-weight:700}
+.timer-mode-badge{font-family:'Cinzel',serif;font-size:11px;padding:2px 10px;border-radius:10px;font-weight:700}
+
+/* Streak */
+.streak-wrap{display:flex;align-items:center;gap:5px}
+.streak-badge{font-family:'Cinzel',serif;font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px;background:rgba(255,109,0,.2);border:1px solid rgba(255,109,0,.5);color:var(--orange);display:none}
+.streak-badge.show{display:flex;align-items:center;gap:4px;animation:streakPop .3s ease}
+
+/* Pergunta */
+.jogo-content{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.question-box{background:rgba(30,26,18,.9);border:1px solid rgba(212,175,55,.25);border-radius:14px;padding:16px 14px;text-align:center;flex-shrink:0}
+.question-meta{display:flex;justify-content:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.question-num{color:var(--gold);font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;font-weight:700}
+.cat-chip{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.3);color:var(--muted);font-family:'Cinzel',serif}
+.diff-chip{font-size:10px;padding:2px 8px;border-radius:10px;font-family:'Cinzel',serif;font-weight:700}
+.diff-facil{background:rgba(0,200,83,.15);border:1px solid rgba(0,200,83,.3);color:var(--green)}
+.diff-medio{background:rgba(255,193,7,.15);border:1px solid rgba(255,193,7,.3);color:#FFC107}
+.diff-dificil{background:rgba(213,0,0,.15);border:1px solid rgba(213,0,0,.3);color:var(--red-soft)}
+.question-text{font-family:'Cinzel',serif;color:var(--white);font-size:15px;line-height:1.5;font-weight:700}
+.opcoes{display:flex;flex-direction:column;gap:8px}
+.opcao-btn{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid #3a3a3a;border-radius:11px;padding:12px 14px;cursor:pointer;text-align:left;transition:background .2s,border-color .2s,transform .1s;width:100%}
+.opcao-btn:hover:not(:disabled){border-color:rgba(212,175,55,.5);background:rgba(212,175,55,.06)}
+.opcao-btn:active:not(:disabled){transform:scale(.98)}
+.opcao-btn:disabled{cursor:default}
+.opcao-btn.correct{background:rgba(0,200,83,.12)!important;border-color:var(--green)!important;border-width:1.5px}
+.opcao-btn.wrong{background:rgba(213,0,0,.12)!important;border-color:var(--red)!important;border-width:1.5px}
+.opcao-letter{font-family:'Cinzel',serif;color:var(--gold);font-size:12px;font-weight:700;min-width:18px;flex-shrink:0}
+.opcao-text{font-size:13px;color:var(--white);line-height:1.3;flex:1}
+.opcao-btn.correct .opcao-text{color:var(--green)}
+.opcao-btn.wrong .opcao-text{color:var(--red-soft)}
+
+/* Resposta certa (mostrada ao errar) */
+.resposta-certa-box{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.4);border-radius:10px;padding:10px 14px;display:none;flex-shrink:0}
+.resposta-certa-box.show{display:block}
+.resposta-certa-label{font-family:'Cinzel',serif;font-size:10px;color:var(--green);letter-spacing:1.5px;margin-bottom:4px}
+.resposta-certa-text{font-size:14px;color:var(--white);font-weight:700}
+
+/* Maratona vidas */
+.vidas-wrap{display:flex;gap:4px;align-items:center}
+.vida{font-size:14px;transition:opacity .3s}
+.vida.perdida{opacity:.2;filter:grayscale(1)}
+
+/* Footer jogo */
+.jogo-footer{display:flex;gap:10px;padding:10px 14px 14px;border-top:1px solid rgba(212,175,55,.15);background:var(--surface);flex-shrink:0;justify-content:center;align-items:center}
+.btn-sair-jogo{width:130px;padding:13px;border-radius:10px;border:1.5px solid rgba(212,175,55,.5);background:transparent;color:var(--gold);font-family:'Cinzel',serif;font-weight:700;font-size:13px;cursor:pointer;text-align:center}
+.btn-proxima-jogo{width:180px;padding:13px;border-radius:10px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));border:none;color:#0D0D0D;font-family:'Cinzel',serif;font-weight:700;font-size:14px;cursor:pointer;text-align:center}
+
+/* ═══ POPUP ═══ */
+.popup-box .popup-emoji{font-size:48px;display:block;margin-bottom:10px}
+.popup-box .popup-title{font-family:'Cinzel',serif;font-size:19px;font-weight:700;margin-bottom:6px}
+.popup-box .popup-pray{font-size:26px;display:block;margin-bottom:8px}
+.popup-box .popup-msg{color:#aaa;font-size:13px;line-height:1.6;margin-bottom:6px}
+.popup-resposta{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.35);border-radius:8px;padding:8px 12px;margin:10px 0 16px;display:none}
+.popup-resposta.show{display:block}
+.popup-resposta-label{font-family:'Cinzel',serif;font-size:10px;color:var(--green);letter-spacing:1px;margin-bottom:3px}
+.popup-resposta-text{font-size:13px;color:var(--white);font-weight:700}
+.popup-streak{font-family:'Cinzel',serif;font-size:13px;color:var(--orange);margin-bottom:12px;display:none}
+.popup-streak.show{display:block}
+
+/* Game over */
+.gameover-box{text-align:center;padding:32px 24px}
+.gameover-icon{font-size:56px;display:block;margin-bottom:12px}
+.gameover-title{font-family:'Cinzel Decorative',serif;font-size:22px;background:linear-gradient(135deg,var(--gold-dark),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:20px}
+.gameover-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.go-stat{background:var(--surface2);border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(212,175,55,.2)}
+.go-stat-val{font-family:'Cinzel',serif;font-size:24px;font-weight:700;display:block}
+.go-stat-lbl{font-size:12px;color:var(--muted);margin-top:3px;display:block}
+
+/* STATIC */
+.static-content{padding:22px;flex:1;overflow:hidden}
+.loading-inline{text-align:center;padding:40px;color:var(--muted);font-family:'Cinzel',serif;font-size:14px}
+.center-empty{text-align:center;padding:48px 20px}
+
+/* EDIT PROFILE POPUP */
+.edit-field{margin-bottom:14px}
+.edit-field label{display:block;color:var(--gold);font-family:'Cinzel',serif;font-size:11px;font-weight:700;letter-spacing:1.5px;margin-bottom:6px}
+.edit-field input{width:100%;padding:11px 14px;background:var(--surface);border:1.5px solid rgba(212,175,55,.3);border-radius:8px;color:var(--white);font-family:'Lato',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
+.edit-field input:focus{border-color:var(--gold)}
+.edit-field input.invalid{border-color:var(--red-soft)!important}
+.edit-field input.valid{border-color:var(--green)!important}
+.edit-field .field-hint{font-size:11px;margin-top:4px;display:block}
+.field-counter{font-size:11px;color:var(--muted);text-align:right;margin-top:3px}
+.pencil-btn{background:rgba(212,175,55,.15);border:1.5px solid rgba(212,175,55,.4);border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;margin-left:4px;flex-shrink:0;transition:background .2s}
+.pencil-btn:hover{background:rgba(212,175,55,.3)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOADING -->
+<div id="screen-loading" class="screen">
+  <div class="spinner-wrap"><div class="spinner-ring"></div><div class="spinner-ring2"></div><div class="spinner-cross">✝️</div></div>
+  <span class="gold-title" style="font-size:24px;letter-spacing:3px">ELOHIM QUEST</span>
+  <span style="color:var(--muted);font-size:14px">Carregando sua jornada…</span>
+  <span style="position:absolute;bottom:36px;color:var(--dim);font-size:12px;font-style:italic;text-align:center;padding:0 40px">"A tua palavra é lâmpada para os meus pés" — Sl 119:105</span>
+</div>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen hidden">
+  <div class="login-hero">
+    <span style="font-size:52px;display:block;margin-bottom:10px;animation:float 3.2s ease-in-out infinite">⚔️</span>
+    <span class="gold-title" style="font-size:28px;letter-spacing:2px">ELOHIM QUEST</span>
+    <span style="color:rgba(212,175,55,.4);letter-spacing:10px;font-size:10px;margin-top:4px;display:block">✦ ✦ ✦</span>
+    <p style="color:#aaa;font-size:13px;margin-top:8px;font-style:italic">Uma jornada com Deus começa aqui.</p>
+  </div>
+  <div class="login-form">
+    <p class="form-title">Entrar na Jornada</p>
+    <div id="login-error" class="error-box"></div>
+    <div class="field"><label>E-MAIL</label><input type="email" id="login-email" placeholder="seu@email.com"></div>
+    <div class="field"><label>SENHA</label><input type="password" id="login-senha" placeholder="••••••••"></div>
+    <div style="height:8px"></div>
+    <button class="btn-gold" id="btn-entrar">⚔️  ENTRAR</button>
+    <div style="height:11px"></div>
+    <button class="btn-outline" id="btn-ir-cadastro">📜 Criar Conta</button>
+  </div>
+</div>
+
+<!-- CADASTRO -->
+<div id="screen-cadastro" class="screen hidden">
+  <div class="login-hero" style="padding-top:40px;padding-bottom:22px">
+    <span class="gold-title" style="font-size:22px;letter-spacing:2px">ELOHIM QUEST</span>
+    <p style="color:#aaa;font-size:13px;margin-top:6px">Crie sua conta e comece a jornada</p>
+  </div>
+  <div class="login-form">
+    <div id="cad-error" class="error-box"></div>
+    <div class="edit-field">
+      <label>NOME <span style="color:var(--muted);font-weight:400">(máx. 20)</span></label>
+      <input type="text" id="cad-nome" placeholder="Seu nome completo" maxlength="20" oninput="updateCounter('cad-nome','cad-nome-count',20)">
+      <span class="field-counter" id="cad-nome-count">0/20</span>
+    </div>
+    <div class="edit-field">
+      <label>@ USUÁRIO <span style="color:var(--muted);font-weight:400">(máx. 10)</span></label>
+      <input type="text" id="cad-user" placeholder="guerreiro_da_fe" maxlength="10" oninput="checkUsernameDisponivel('cad-user','cad-user-hint','cad-user-count')">
+      <span class="field-counter" id="cad-user-count">0/10</span>
+      <span class="field-hint" id="cad-user-hint" style="color:var(--muted)"></span>
+    </div>
+    <div class="edit-field"><label>E-MAIL</label><input type="email" id="cad-email" placeholder="seu@email.com"></div>
+    <div class="edit-field"><label>SENHA</label><input type="password" id="cad-senha" placeholder="Mínimo 6 caracteres"></div>
+    <div class="edit-field"><label>CONFIRMAR SENHA</label><input type="password" id="cad-confirm" placeholder="Repita a senha"></div>
+    <div style="height:8px"></div>
+    <button class="btn-gold" id="btn-cadastrar">🙏 CADASTRAR</button>
+    <div style="height:11px"></div>
+    <button class="btn-outline" id="btn-ir-login">← Já tenho conta</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="screen hidden">
+  <div class="home-header">
+    <button class="drawer-btn" id="btn-open-drawer">☰</button>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="username" id="home-username">@guerreiro</span>
+      <button class="pencil-btn" id="btn-edit-perfil" title="Editar perfil">✏️</button>
+    </div>
+    <div class="header-right">
+      <div id="home-badge-acertos" class="stat-badge"></div>
+      <div id="home-badge-erros" class="stat-badge"></div>
+      <button class="avatar-btn" id="btn-avatar">👤</button>
+    </div>
+  </div>
+  <div class="home-hero">
+    <span class="gold-title" style="font-size:30px;display:block;line-height:1.1;letter-spacing:2px">ELOHIM<br>QUEST</span>
+    <p style="color:#aaa;font-size:13px;margin-top:8px;font-style:italic">Uma jornada com Deus começa aqui.</p>
+    <div class="nivel-badge" id="home-nivel-badge">🏅  Nível 1 — Iniciante</div>
+  </div>
+  <div class="home-btns">
+    <button class="btn-gold pulse" id="btn-jogar" style="font-size:17px;padding:17px">⚔️  JOGAR</button>
+    <button class="btn-outline" id="btn-ranking">🏆  Ranking</button>
+    <button class="btn-outline" id="btn-sobre">📖  Sobre</button>
+    <button class="btn-outline" id="btn-privacidade">🔒  Privacidade</button>
+  </div>
+</div>
+
+<!-- SELEÇÃO MODO + FILTROS -->
+<div id="screen-selecao" class="screen hidden">
+  <div class="selecao-header">
+    <button class="back-btn" id="btn-sel-back" style="background:transparent;border:none;color:var(--gold);font-size:22px;cursor:pointer">←</button>
+    <span style="font-family:'Cinzel',serif;font-weight:700;font-size:17px;color:var(--gold);letter-spacing:1px">⚔️  Configurar Jogo</span>
+  </div>
+  <div class="selecao-body">
+    <!-- Modo -->
+    <div>
+      <p class="sel-section-title">MODO DE JOGO</p>
+      <div class="modo-grid">
+        <div class="modo-card selected" data-modo="rapido" id="modo-rapido" onclick="selecionarModo('rapido')">
+          <span class="modo-icon">⚡</span>
+          <span class="modo-nome">RÁPIDO</span>
+          <span class="modo-desc">10 perguntas com timer de 15s cada</span>
+        </div>
+        <div class="modo-card" data-modo="maratona" id="modo-maratona" onclick="selecionarModo('maratona')">
+          <span class="modo-icon">🏃</span>
+          <span class="modo-nome">MARATONA</span>
+          <span class="modo-desc">Até 3 erros, sem limite de perguntas</span>
+        </div>
+      </div>
+    </div>
+    <!-- Dificuldade -->
+    <div>
+      <p class="sel-section-title">DIFICULDADE</p>
+      <div class="chips" id="chips-dificuldade">
+        <button class="chip all selected" onclick="toggleChip(this,'dificuldade')">Todas</button>
+      </div>
+    </div>
+    <!-- Categoria -->
+    <div>
+      <p class="sel-section-title">CATEGORIA</p>
+      <div class="chips" id="chips-categoria">
+        <button class="chip all selected" onclick="toggleChip(this,'categoria')">Todas</button>
+      </div>
+    </div>
+    <button class="btn-gold" id="btn-iniciar-jogo" style="margin-top:auto">⚔️  INICIAR</button>
+  </div>
+</div>
+
+<!-- JOGO -->
+<div id="screen-jogo" class="screen hidden">
+  <div class="jogo-topbar">
+    <div class="streak-wrap">
+      <div id="jogo-badge-acertos" class="stat-badge"></div>
+      <div class="streak-badge" id="streak-badge">🔥 <span id="streak-num">0</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="ornament" style="color:var(--gold);opacity:.5;font-size:11px">✦</span>
+      <div id="vidas-wrap" class="vidas-wrap" style="display:none"></div>
+    </div>
+    <div id="jogo-badge-erros" class="stat-badge"></div>
+  </div>
+  <!-- Timer -->
+  <div class="timer-wrap" id="timer-wrap">
+    <div class="timer-label">
+      <span class="timer-secs" id="timer-secs">15</span>
+      <span class="timer-mode-badge" id="timer-mode-badge"></span>
+    </div>
+    <div class="timer-bar-bg"><div class="timer-bar-fill" id="timer-bar" style="width:100%"></div></div>
+  </div>
+  <div class="jogo-content" id="jogo-content">
+    <div class="loading-inline">Carregando desafios…</div>
+  </div>
+  <div class="jogo-footer">
+    <button class="btn-sair-jogo" id="btn-jogo-sair">⬅  Sair</button>
+    <button class="btn-proxima-jogo" id="btn-proxima">Próxima ➡</button>
+  </div>
+</div>
+
+<!-- RANKING -->
+<div id="screen-ranking" class="screen hidden">
+  <div class="screen-header">
+    <button class="back-btn" id="btn-ranking-back">←</button>
+    <span class="title">🏆  RANKING</span>
+  </div>
+  <div class="ranking-list" id="ranking-list"><div class="loading-inline">Carregando…</div></div>
+</div>
+
+<!-- SOBRE -->
+<div id="screen-sobre" class="screen hidden">
+  <div class="screen-header"><button class="back-btn" id="btn-sobre-back">←</button><span class="title">📖  SOBRE</span></div>
+  <div class="static-content">
+    <div style="text-align:center;margin-bottom:18px">
+      <span style="font-size:50px;display:block;margin-bottom:12px;animation:float 3.2s ease-in-out infinite">✝️</span>
+      <span class="gold-title" style="font-size:24px;letter-spacing:2px">ELOHIM QUEST</span>
+      <p style="color:var(--gold);font-style:italic;font-size:14px;margin-top:6px">Uma jornada com Deus começa aqui.</p>
+    </div>
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+    <p style="color:#ccc;line-height:1.75;font-size:14px;margin-bottom:12px"><span style="color:var(--gold-light);font-weight:700">Elohim Quest</span> é um quiz bíblico interativo criado para desafiar e fortalecer o conhecimento das Escrituras Sagradas.</p>
+    <p style="color:#ccc;line-height:1.75;font-size:14px">Responda perguntas sobre o Antigo e Novo Testamento, suba de nível e dispute no ranking global!</p>
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+    <p style="color:#ccc;font-style:italic;font-size:14px;line-height:1.7;text-align:center">"Lâmpada para os meus pés é a tua palavra."<br><span style="color:var(--gold);font-weight:700">— Salmos 119:105</span></p>
+  </div>
+</div>
+
+<!-- PRIVACIDADE -->
+<div id="screen-privacidade" class="screen hidden">
+  <div class="screen-header"><button class="back-btn" id="btn-priv-back">←</button><span class="title">🔒  PRIVACIDADE</span></div>
+  <div class="static-content" style="color:#ccc;font-size:14px;line-height:1.75">
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:15px;font-weight:700;margin-bottom:10px">Política de Privacidade</p>
+    <p style="margin-bottom:12px">O <span style="color:var(--gold-light);font-weight:700">Elohim Quest</span> respeita a privacidade de seus usuários.</p>
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:16px 0 8px">Dados Coletados</p>
+    <ul style="padding-left:18px"><li style="margin-bottom:6px">Nome e nome de usuário</li><li style="margin-bottom:6px">Endereço de e-mail</li><li>Estatísticas de jogo</li></ul>
+    <p style="color:var(--gold);font-family:'Cinzel',serif;font-size:13px;margin:16px 0 8px">Uso do Firebase</p>
+    <p>Dados armazenados com segurança no <span style="color:var(--gold-light);font-weight:700">Google Firebase</span>. Não vendemos nem compartilhamos seus dados.</p>
+    <div class="divider"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+    <p style="color:var(--dim);font-size:12px;text-align:center">Última atualização: Março 2025</p>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- MODAL PERFIL -->
+<div class="overlay" id="overlay-perfil">
+  <div class="sheet">
+    <div class="perfil-handle"></div>
+    <span style="font-size:52px;display:block;text-align:center;margin-bottom:8px">👤</span>
+    <p style="font-family:'Cinzel',serif;color:var(--gold);font-size:19px;text-align:center" id="perfil-nome">—</p>
+    <p style="color:var(--muted);font-size:14px;text-align:center;margin-top:2px" id="perfil-user">—</p>
+    <div class="divider" style="margin:14px 0"><div class="divider-line"></div><span class="divider-dot">✦</span><div class="divider-line r"></div></div>
+    <div class="progress-bar" style="margin-bottom:4px"><div class="progress-fill" id="perfil-bar" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+      <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--gold)">PROGRESSO</span>
+      <span style="color:var(--gold-light);font-size:12px" id="perfil-pct">0%</span>
+    </div>
+    <div class="stats-row" id="perfil-stats"></div>
+    <button class="btn-gold" id="btn-perfil-close">Fechar</button>
+  </div>
+</div>
+
+<!-- POPUP EDITAR PERFIL -->
+<div class="popup-center" id="popup-editar">
+  <div class="popup-box" style="width:92%;max-width:360px;text-align:left;padding:24px 20px">
+    <p style="font-family:'Cinzel',serif;color:var(--gold);font-size:17px;font-weight:700;margin-bottom:18px;text-align:center">✏️ Editar Perfil</p>
+    <div id="edit-error" class="error-box" style="margin-bottom:14px"></div>
+    <div class="edit-field">
+      <label>NOME <span style="color:var(--muted);font-weight:400">(máx. 20)</span></label>
+      <input type="text" id="edit-nome" maxlength="20" oninput="updateCounter('edit-nome','edit-nome-count',20)">
+      <span class="field-counter" id="edit-nome-count">0/20</span>
+    </div>
+    <div class="edit-field">
+      <label>@ USUÁRIO <span style="color:var(--muted);font-weight:400">(máx. 10 · troca a cada 15 dias)</span></label>
+      <input type="text" id="edit-username" maxlength="10" oninput="checkUsernameDisponivel('edit-username','edit-user-hint','edit-user-count')">
+      <span class="field-counter" id="edit-user-count">0/10</span>
+      <span class="field-hint" id="edit-user-hint" style="color:var(--muted)"></span>
+    </div>
+    <div id="edit-user-blocked" style="display:none;background:rgba(213,0,0,.1);border:1px solid rgba(213,0,0,.4);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--red-soft);margin-bottom:10px"></div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn-outline" id="btn-edit-cancel" style="flex:1;padding:11px">Cancelar</button>
+      <button class="btn-gold" id="btn-edit-save" style="flex:2;padding:11px;font-size:14px">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP PERFIL RANKING -->
+<div class="popup-center" id="popup-perfil-ranking">
+  <div class="popup-box" style="width:88%;max-width:340px;padding:28px 22px;text-align:center">
+    <div style="font-size:52px;margin-bottom:10px" id="rk-posicao-medal">👤</div>
+    <span style="font-size:46px;display:block;margin-bottom:8px">👤</span>
+    <p style="font-family:'Cinzel',serif;color:var(--gold);font-size:19px;font-weight:700" id="rk-nome">—</p>
+    <p style="color:var(--muted);font-size:14px;margin-top:4px" id="rk-user">—</p>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-top:10px;margin-bottom:14px">
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);border-radius:20px;padding:5px 14px;font-family:'Cinzel',serif;color:var(--gold);font-size:12px;font-weight:700" id="rk-nivel-badge">🏅 Nível 1</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+      <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.4))"></div>
+      <span style="color:var(--gold);font-size:10px">✦</span>
+      <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,rgba(212,175,55,.4))"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px" id="rk-stats"></div>
+    <button class="btn-gold" id="btn-rk-perfil-close">Fechar Perfil</button>
+  </div>
+</div>
+<div class="popup-center" id="popup-resultado">
+  <div class="popup-box" id="popup-box">
+    <span class="popup-emoji" id="popup-emoji">🎉</span>
+    <p class="popup-title" id="popup-title">Parabéns!</p>
+    <span class="popup-pray" id="popup-pray">🙏</span>
+    <p class="popup-msg" id="popup-msg"></p>
+    <div class="popup-resposta" id="popup-resposta">
+      <p class="popup-resposta-label">RESPOSTA CORRETA</p>
+      <p class="popup-resposta-text" id="popup-resposta-text"></p>
+    </div>
+    <p class="popup-streak" id="popup-streak"></p>
+    <button class="btn-gold" id="btn-popup-proxima">Próxima Pergunta ➡</button>
+  </div>
+</div>
+
+<!-- POPUP GAME OVER -->
+<div class="popup-center" id="popup-gameover">
+  <div class="popup-box">
+    <div class="gameover-box">
+      <span class="gameover-icon">👎🏻</span>
+      <p class="gameover-title">GAME OVER</p>
+      <div class="gameover-stats">
+        <div class="go-stat"><span class="go-stat-val" id="go-acertos" style="color:var(--green)">0</span><span class="go-stat-lbl">Acertos</span></div>
+        <div class="go-stat"><span class="go-stat-val" id="go-erros" style="color:var(--red-soft)">0</span><span class="go-stat-lbl">Erros</span></div>
+        <div class="go-stat"><span class="go-stat-val" id="go-pergs" style="color:var(--gold)">0</span><span class="go-stat-lbl">Perguntas</span></div>
+        <div class="go-stat"><span class="go-stat-val" id="go-streak" style="color:var(--orange)">0</span><span class="go-stat-lbl">Maior Streak</span></div>
+      </div>
+      <button class="btn-gold" id="btn-go-jogar-novo" style="margin-bottom:10px">🔄  Jogar Novamente</button>
+      <button class="btn-outline" id="btn-go-home">🏠  Voltar ao Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay">
+  <div class="drawer" id="drawer">
+    <div class="drawer-top" style="padding:36px 24px 20px">
+      <p style="font-family:'Cinzel Decorative',serif;font-size:16px;background:linear-gradient(135deg,#A07820,#FFD700,#D4AF37);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">ELOHIM QUEST</p>
+      <p style="color:var(--muted);font-size:12px;margin-top:4px;font-style:italic">Uma jornada com Deus começa aqui.</p>
+    </div>
+    <nav style="flex:1;padding:16px 0">
+      <button class="drawer-item" id="drawer-jogar"><span style="font-size:18px;min-width:24px">⚔️</span> JOGAR</button>
+      <button class="drawer-item" id="drawer-ranking"><span style="font-size:18px;min-width:24px">🏆</span> Ranking</button>
+      <div class="drawer-separator"></div>
+      <button class="drawer-item" id="drawer-sobre"><span style="font-size:18px;min-width:24px">📖</span> Sobre</button>
+      <button class="drawer-item" id="drawer-privacidade"><span style="font-size:18px;min-width:24px">🔒</span> Privacidade</button>
+    </nav>
+    <div class="drawer-logout">
+      <button id="drawer-logout"><span style="font-size:16px">🚪</span> Sair da conta</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════ FIREBASE ═══════════
+const firebaseConfig = {
+  apiKey:"AIzaSyCjdAJtbOh0dxYsIUUCc8iVN686Yj3hO48",
+  authDomain:"royalcyber-elohimquest.firebaseapp.com",
+  databaseURL:"https://royalcyber-elohimquest-default-rtdb.firebaseio.com",
+  projectId:"royalcyber-elohimquest",
+  storageBucket:"royalcyber-elohimquest.firebasestorage.app",
+  messagingSenderId:"525330030955",
+  appId:"1:525330030955:web:24ee7c0a171f28c2dbac2e"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.database();
+
+// ═══════════ CONSTANTES ═══════════
+const NIVEL_NOMES = ['','Iniciante','Discípulo','Apóstolo','Profeta','Ancião'];
+const LETRAS = ['A','B','C','D'];
+const TIMER_RAPIDO   = 15;
+const VIDAS_MARATONA = 3;
+
+function calcNivel(a){ if(a>=100)return 5; if(a>=50)return 4; if(a>=30)return 3; if(a>=10)return 2; return 1; }
+
+// ═══════════ STATE ═══════════
+let userData=null, todasPerguntas=[], perguntasFiltradas=[];
+let jogoIdx=0, jogoRespondido=false, jogoAcertos=0, jogoErros=0;
+let jogoIndiceCorreto=-1, jogoOpcoes=[], jogoRespostaCorreta='';
+let jogoUsadas=new Set(), jogoStreak=0, jogoMaiorStreak=0, jogoTotalRespondidas=0;
+let jogoModo='rapido', vidasRestantes=VIDAS_MARATONA;
+let timerInterval=null, timerSecs=TIMER_RAPIDO;
+let rankingUnsub=null;
+// filtros seleção
+let selModo='rapido', selDificuldades=new Set(), selCategorias=new Set();
+
+// ═══════════ NAVEGAÇÃO ═══════════
+const SCREENS=['loading','login','cadastro','home','selecao','jogo','ranking','sobre','privacidade'];
+function showScreen(name){
+  SCREENS.forEach(s=>document.getElementById('screen-'+s).classList.toggle('hidden',s!==name));
+  window.scrollTo(0,0);
+}
+
+// ═══════════ UTILS ═══════════
+function renderBadge(id,icon,val,color){
+  const el=document.getElementById(id);
+  el.innerHTML=`<span>${icon}</span><span>${val}</span>`;
+  el.style.background=color+'22'; el.style.border='1px solid '+color+'66'; el.style.color=color;
+}
+function showErr(id,msg){const e=document.getElementById(id);e.textContent='⚠️  '+msg;e.classList.add('show')}
+function clearErr(id){const e=document.getElementById(id);e.textContent='';e.classList.remove('show')}
+function setBtn(id,txt,dis=false){const b=document.getElementById(id);b.textContent=txt;b.disabled=dis}
+function diffClass(d){
+  if(!d)return'';
+  const l=String(d).toLowerCase();
+  if(l.includes('fáci')||l.includes('faci')||l==='1')return'diff-facil';
+  if(l.includes('médi')||l.includes('medi')||l==='2')return'diff-medio';
+  if(l.includes('dif')||l==='3')return'diff-dificil';
+  return'diff-medio';
+}
+function playSound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    if(type==='acerto'){o.frequency.value=880;g.gain.setValueAtTime(.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.4);o.type='sine';}
+    else{o.frequency.value=220;g.gain.setValueAtTime(.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.5);o.type='sawtooth';}
+    o.start();o.stop(ctx.currentTime+.5);
+  }catch(e){}
+}
+
+// ═══════════ AUTH ═══════════
+auth.onAuthStateChanged(async user=>{
+  if(user){
+    const snap=await db.ref('users/'+user.uid).get();
+    if(snap.exists())userData=snap.val();
+    db.ref('users/'+user.uid).on('value',s=>{if(s.exists()){userData=s.val();updateHomeUI();}});
+    // carrega perguntas
+    const ps=await db.ref('elohimquest').get();
+    if(ps.exists()){
+      const raw=ps.val();
+      todasPerguntas=Array.isArray(raw)?raw:Object.values(raw);
+      preencherFiltros();
+    }
+    updateHomeUI();
+    showScreen('home');
+  } else {
+    userData=null;
+    showScreen('login');
+  }
+});
+
+// ═══════════ HOME UI ═══════════
+function updateHomeUI(){
+  if(!userData)return;
+  const a=userData.acertos||0,e=userData.erros||0,n=calcNivel(a);
+  document.getElementById('home-username').textContent='@'+(userData.username||'guerreiro');
+  document.getElementById('home-nivel-badge').textContent='🏅  Nível '+n+' — '+NIVEL_NOMES[n];
+  renderBadge('home-badge-acertos','✅',a,'#00C853');
+  renderBadge('home-badge-erros','❌',e,'#D50000');
+}
+
+// ═══════════ FILTROS — SELEÇÃO ═══════════
+function preencherFiltros(){
+  const difs=[...new Set(todasPerguntas.map(p=>p.dificuldade).filter(Boolean))];
+  const cats=[...new Set(todasPerguntas.map(p=>p.categoria).filter(Boolean))];
+  const wd=document.getElementById('chips-dificuldade');
+  wd.innerHTML='<button class="chip all selected" onclick="toggleChip(this,\'dificuldade\')">Todas</button>';
+  difs.forEach(d=>{
+    const b=document.createElement('button');
+    b.className='chip'; b.textContent=d; b.dataset.val=d;
+    b.onclick=()=>toggleChip(b,'dificuldade');
+    wd.appendChild(b);
+  });
+  const wc=document.getElementById('chips-categoria');
+  wc.innerHTML='<button class="chip all selected" onclick="toggleChip(this,\'categoria\')">Todas</button>';
+  cats.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='chip'; b.textContent=c; b.dataset.val=c;
+    b.onclick=()=>toggleChip(b,'categoria');
+    wc.appendChild(b);
+  });
+}
+
+function selecionarModo(modo){
+  selModo=modo;
+  document.getElementById('modo-rapido').classList.toggle('selected',modo==='rapido');
+  document.getElementById('modo-maratona').classList.toggle('selected',modo==='maratona');
+}
+
+function toggleChip(chip,tipo){
+  const wrap=document.getElementById('chips-'+tipo);
+  const allBtn=wrap.querySelector('.all');
+  if(chip.classList.contains('all')){
+    // seleciona "Todas" — desmarca tudo mais
+    wrap.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+    allBtn.classList.add('selected');
+    if(tipo==='dificuldade')selDificuldades.clear();
+    else selCategorias.clear();
+  } else {
+    allBtn.classList.remove('selected');
+    chip.classList.toggle('selected');
+    const set=tipo==='dificuldade'?selDificuldades:selCategorias;
+    if(chip.classList.contains('selected'))set.add(chip.dataset.val);
+    else set.delete(chip.dataset.val);
+    // se nada selecionado, volta para Todas
+    if(set.size===0)allBtn.classList.add('selected');
+  }
+}
+
+function aplicarFiltros(){
+  let p=[...todasPerguntas];
+  if(selDificuldades.size>0)p=p.filter(q=>selDificuldades.has(q.dificuldade));
+  if(selCategorias.size>0)p=p.filter(q=>selCategorias.has(q.categoria));
+  return p.sort(()=>Math.random()-.5);
+}
+
+// ═══════════ JOGO — INICIAR ═══════════
+function abrirSelecao(){
+  preencherFiltros();
+  showScreen('selecao');
+}
+
+function iniciarJogo(){
+  jogoModo=selModo;
+  perguntasFiltradas=aplicarFiltros();
+  if(perguntasFiltradas.length===0){
+    alert('Nenhuma pergunta encontrada com esses filtros. Tente outros.');
+    return;
+  }
+  // reset state
+  jogoIdx=0; jogoUsadas=new Set([0]);
+  jogoAcertos=userData?.acertos||0; jogoErros=userData?.erros||0;
+  jogoStreak=0; jogoMaiorStreak=0; jogoTotalRespondidas=0;
+  vidasRestantes=VIDAS_MARATONA;
+
+  showScreen('jogo');
+  renderBadge('jogo-badge-acertos','✅',jogoAcertos,'#00C853');
+  renderBadge('jogo-badge-erros','❌',jogoErros,'#D50000');
+
+  // Timer — só no modo rápido
+  const timerWrap=document.getElementById('timer-wrap');
+  const modeBadge=document.getElementById('timer-mode-badge');
+  if(jogoModo==='rapido'){
+    timerWrap.style.display='block';
+    modeBadge.textContent='⚡ RÁPIDO';
+    modeBadge.style.background='rgba(212,175,55,.15)';
+    modeBadge.style.color='var(--gold)';
+    modeBadge.style.border='1px solid rgba(212,175,55,.3)';
+  } else {
+    timerWrap.style.display='none';
+    modeBadge.textContent='🏃 MARATONA';
+  }
+
+  // Vidas — só no modo maratona
+  const vidasWrap=document.getElementById('vidas-wrap');
+  if(jogoModo==='maratona'){
+    vidasWrap.style.display='flex';
+    renderVidas();
+  } else {
+    vidasWrap.style.display='none';
+  }
+
+  renderPergunta();
+}
+
+// ═══════════ VIDAS ═══════════
+function renderVidas(){
+  const w=document.getElementById('vidas-wrap');
+  w.innerHTML='';
+  for(let i=0;i<VIDAS_MARATONA;i++){
+    const span=document.createElement('span');
+    span.className='vida'+(i>=vidasRestantes?' perdida':'');
+    span.textContent='❤️';
+    w.appendChild(span);
+  }
+}
+
+// ═══════════ TIMER ═══════════
+function iniciarTimer(){
+  pararTimer();
+  timerSecs=TIMER_RAPIDO;
+  atualizarTimerUI();
+  timerInterval=setInterval(()=>{
+    timerSecs--;
+    atualizarTimerUI();
+    if(timerSecs<=0){
+      pararTimer();
+      // Tempo esgotado = erro automático
+      if(!jogoRespondido) responderTimeout();
+    }
+  },1000);
+}
+function pararTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+function atualizarTimerUI(){
+  document.getElementById('timer-secs').textContent=timerSecs;
+  const pct=(timerSecs/TIMER_RAPIDO)*100;
+  const bar=document.getElementById('timer-bar');
+  bar.style.width=pct+'%';
+  if(timerSecs<=5)bar.style.background='linear-gradient(to right,#D50000,#FF5252)';
+  else if(timerSecs<=8)bar.style.background='linear-gradient(to right,#A07820,#FFC107)';
+  else bar.style.background='linear-gradient(to right,var(--gold-dark),var(--gold-light))';
+}
+function responderTimeout(){
+  jogoRespondido=true;
+  jogoStreak=0;
+  jogoErros++;
+  renderBadge('jogo-badge-erros','❌',jogoErros,'#D50000');
+  const uid=auth.currentUser?.uid;
+  if(uid)db.ref('users/'+uid).update({erros:jogoErros});
+  if(userData)userData.erros=jogoErros;
+  // Destaca correta
+  document.querySelectorAll('.opcao-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===jogoIndiceCorreto)btn.classList.add('correct');
+  });
+  // Mostra caixa de resposta certa
+  mostrarRespostaCerta();
+  // Popup timeout
+  const pop=document.getElementById('popup-resultado');
+  const box=document.getElementById('popup-box');
+  document.getElementById('popup-emoji').textContent='⏰';
+  document.getElementById('popup-title').textContent='Tempo Esgotado!';
+  document.getElementById('popup-title').style.color='#FFC107';
+  document.getElementById('popup-pray').textContent='😮';
+  document.getElementById('popup-msg').textContent='Você não respondeu a tempo!';
+  box.style.borderColor='#FFC107';
+  mostrarPopupRespostaCerta();
+  pop.classList.add('show');
+  jogoTotalRespondidas++;
+  if(jogoModo==='maratona'){
+    vidasRestantes=Math.max(0,vidasRestantes-1);
+    renderVidas();
+    if(vidasRestantes===0){setTimeout(()=>{pop.classList.remove('show');mostrarGameOver();},1400);}
+  }
+}
+
+// ═══════════ GERAR OPÇÕES ═══════════
+function gerarOpcoes(p){
+  const correta=String(p.resposta||p.respostaCorreta||p.gabarito||p.answer||'').trim();
+  if(!correta)return{opcoes:[],indiceCorreto:-1};
+  const pool=perguntasFiltradas
+    .filter(q=>q!==p)
+    .map(q=>String(q.resposta||q.respostaCorreta||q.gabarito||q.answer||'').trim())
+    .filter((v,i,arr)=>v&&v.toLowerCase()!==correta.toLowerCase()&&arr.indexOf(v)===i);
+  const dist=pool.sort(()=>Math.random()-.5).slice(0,3);
+  const opcoes=[...dist];
+  const pos=Math.floor(Math.random()*(opcoes.length+1));
+  opcoes.splice(pos,0,correta);
+  return{opcoes,indiceCorreto:pos,respostaCorreta:correta};
+}
+
+// ═══════════ RENDER PERGUNTA ═══════════
+function renderPergunta(){
+  if(perguntasFiltradas.length===0)return;
+  const p=perguntasFiltradas[jogoIdx];
+
+  // opções do banco ou geradas
+  let opcoes=[],indiceCorreto=-1,respostaCorreta='';
+  let opts=p.opcoes||p.alternativas||p.respostas||p.options||[];
+  if(!Array.isArray(opts)&&typeof opts==='object'&&opts)opts=Object.values(opts);
+  if(opts.length===0){const t=[p.opcao1,p.opcao2,p.opcao3,p.opcao4].filter(Boolean);if(t.length>0)opts=t;}
+  if(opts.length>0){
+    opcoes=opts; respostaCorreta=String(p.resposta||p.respostaCorreta||opts[p.correta]||'');
+    // índice
+    if(p.correta!==undefined&&p.correta!==null){const v=Number(p.correta);indiceCorreto=v>=opts.length?v-1:v;}
+    else{const rc=p.respostaCorreta||p.resposta||'';indiceCorreto=opts.findIndex(o=>String(o).toLowerCase().trim()===rc.toLowerCase().trim());}
+  } else {
+    const g=gerarOpcoes(p);
+    opcoes=g.opcoes; indiceCorreto=g.indiceCorreto; respostaCorreta=g.respostaCorreta||'';
+  }
+
+  jogoOpcoes=opcoes; jogoIndiceCorreto=indiceCorreto; jogoRespostaCorreta=respostaCorreta;
+  jogoRespondido=false;
+
+  const texto=p.pergunta||p.questao||p.enunciado||'(sem texto)';
+  const dc=diffClass(p.dificuldade);
+
+  document.getElementById('jogo-content').innerHTML=`
+    <div class="question-box">
+      <div class="question-meta">
+        <span class="question-num">PERGUNTA ${jogoIdx+1} / ${perguntasFiltradas.length}</span>
+        ${p.categoria?`<span class="cat-chip">${p.categoria}</span>`:''}
+        ${p.dificuldade?`<span class="diff-chip ${dc}">${p.dificuldade}</span>`:''}
+      </div>
+      <p class="question-text">${texto}</p>
+    </div>
+    <div class="opcoes" id="opcoes-list">
+      ${opcoes.map((op,i)=>`
+        <button class="opcao-btn" onclick="responder(${i})">
+          <span class="opcao-letter">${LETRAS[i]}.</span>
+          <span class="opcao-text">${op}</span>
+        </button>`).join('')}
+    </div>
+    <div class="resposta-certa-box" id="rc-box">
+      <p class="resposta-certa-label">RESPOSTA CORRETA</p>
+      <p class="resposta-certa-text" id="rc-text"></p>
+    </div>
+  `;
+
+  // streak badge
+  const sb=document.getElementById('streak-badge');
+  if(jogoStreak>=2){sb.classList.add('show');document.getElementById('streak-num').textContent=jogoStreak;}
+  else sb.classList.remove('show');
+
+  if(jogoModo==='rapido')iniciarTimer();
+}
+
+// ═══════════ RESPONDER ═══════════
+function responder(opcIdx){
+  if(jogoRespondido)return;
+  pararTimer();
+  jogoRespondido=true;
+  jogoTotalRespondidas++;
+  const correto=opcIdx===jogoIndiceCorreto;
+
+  document.querySelectorAll('.opcao-btn').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===jogoIndiceCorreto)btn.classList.add('correct');
+    else if(i===opcIdx&&!correto)btn.classList.add('wrong');
+  });
+
+  const uid=auth.currentUser?.uid;
+  if(correto){
+    jogoStreak++; jogoMaiorStreak=Math.max(jogoMaiorStreak,jogoStreak);
+    jogoAcertos++;
+    renderBadge('jogo-badge-acertos','✅',jogoAcertos,'#00C853');
+    if(uid)db.ref('users/'+uid).update({acertos:jogoAcertos,nivel:calcNivel(jogoAcertos)});
+    if(userData)userData.acertos=jogoAcertos;
+    playSound('acerto');
+  } else {
+    jogoStreak=0;
+    jogoErros++;
+    renderBadge('jogo-badge-erros','❌',jogoErros,'#D50000');
+    if(uid)db.ref('users/'+uid).update({erros:jogoErros});
+    if(userData)userData.erros=jogoErros;
+    mostrarRespostaCerta();
+    playSound('erro');
+    if(jogoModo==='maratona'){
+      vidasRestantes=Math.max(0,vidasRestantes-1);
+      renderVidas();
+    }
+  }
+
+  // Popup
+  const pop=document.getElementById('popup-resultado');
+  const box=document.getElementById('popup-box');
+  document.getElementById('popup-emoji').textContent=correto?'🎉':'😬';
+  document.getElementById('popup-title').textContent=correto?'Parabéns! Acertou!':'Ops! Não acertou…';
+  document.getElementById('popup-title').style.color=correto?'#00C853':'#FF5252';
+  document.getElementById('popup-pray').textContent=correto?'🙏':'🙄';
+  document.getElementById('popup-msg').textContent=correto?'Que Deus abençoe sua jornada!':'Eita irmão(a), vigia! Continue tentando!';
+  box.style.borderColor=correto?'#00C853':'#D50000';
+
+  // Mostrar resposta certa no popup se errou
+  if(!correto)mostrarPopupRespostaCerta();
+  else document.getElementById('popup-resposta').classList.remove('show');
+
+  // Streak no popup
+  const ps=document.getElementById('popup-streak');
+  if(correto&&jogoStreak>=3){ps.textContent='🔥 '+jogoStreak+' em sequência!';ps.classList.add('show');}
+  else ps.classList.remove('show');
+
+  pop.classList.add('show');
+
+  // Game over maratona
+  if(jogoModo==='maratona'&&vidasRestantes===0){
+    setTimeout(()=>{pop.classList.remove('show');mostrarGameOver();},1400);
+  }
+  // Fim modo rápido
+  if(jogoModo==='rapido'&&jogoTotalRespondidas>=10){
+    setTimeout(()=>{pop.classList.remove('show');mostrarGameOver();},1400);
+  }
+}
+
+function mostrarRespostaCerta(){
+  if(!jogoRespostaCorreta)return;
+  const box=document.getElementById('rc-box');
+  const txt=document.getElementById('rc-text');
+  if(box&&txt){txt.textContent=jogoRespostaCorreta;box.classList.add('show');}
+}
+function mostrarPopupRespostaCerta(){
+  if(!jogoRespostaCorreta)return;
+  const pr=document.getElementById('popup-resposta');
+  document.getElementById('popup-resposta-text').textContent=jogoRespostaCorreta;
+  pr.classList.add('show');
+}
+
+// ═══════════ PRÓXIMA ═══════════
+function proximaPergunta(){
+  document.getElementById('popup-resultado').classList.remove('show');
+  if(perguntasFiltradas.length===0)return;
+  let next;
+  do{next=Math.floor(Math.random()*perguntasFiltradas.length);}
+  while(jogoUsadas.has(next)&&jogoUsadas.size<perguntasFiltradas.length);
+  if(jogoUsadas.size>=perguntasFiltradas.length)jogoUsadas.clear();
+  jogoUsadas.add(next);
+  jogoIdx=next;
+  renderPergunta();
+}
+
+// ═══════════ GAME OVER ═══════════
+function mostrarGameOver(){
+  pararTimer();
+  document.getElementById('go-acertos').textContent=jogoAcertos-(userData?.acertos||0)>0?jogoAcertos-(userData?.acertos||0):jogoTotalRespondidas-jogoErros;
+  document.getElementById('go-erros').textContent=jogoErros-(userData?.erros||0)>0?jogoErros-(userData?.erros||0):jogoTotalRespondidas-(jogoTotalRespondidas-jogoErros);
+  // Simplifica: mostra totais desta sessão
+  const sessaoAcertos=jogoAcertos-(userData?.acertos-jogoTotalRespondidas+jogoErros||0);
+  document.getElementById('go-acertos').textContent=jogoTotalRespondidas-jogoErros+(jogoErros>0?0:0);
+  document.getElementById('go-erros').textContent=jogoModo==='maratona'?VIDAS_MARATONA-vidasRestantes:jogoErros;
+  document.getElementById('go-pergs').textContent=jogoTotalRespondidas;
+  document.getElementById('go-streak').textContent=jogoMaiorStreak;
+  document.getElementById('go-acertos').textContent=jogoTotalRespondidas-jogoErros;
+  document.getElementById('popup-gameover').classList.add('show');
+}
+
+// ═══════════ PERFIL MODAL ═══════════
+function openPerfil(){
+  if(!userData)return;
+  const a=userData.acertos||0,e=userData.erros||0,n=calcNivel(a);
+  const total=todasPerguntas.length||1;
+  const pct=Math.min(100,Math.round(((a+e)/total)*100));
+  document.getElementById('perfil-nome').textContent=userData.nome||'—';
+  document.getElementById('perfil-user').textContent='@'+(userData.username||'—');
+  document.getElementById('perfil-pct').textContent=pct+'%';
+  document.getElementById('perfil-bar').style.width=pct+'%';
+  document.getElementById('perfil-stats').innerHTML=[
+    {label:'Acertos',value:a,color:'#00C853',icon:'✅'},
+    {label:'Erros',value:e,color:'#D50000',icon:'❌'},
+    {label:'Nível '+n,value:NIVEL_NOMES[n],color:'#D4AF37',icon:'🏅'},
+  ].map(s=>`<div class="stat-card" style="border-color:${s.color}33"><span style="font-size:18px;display:block;margin-bottom:4px">${s.icon}</span><span style="font-family:'Cinzel',serif;font-weight:700;font-size:14px;display:block;color:${s.color}">${s.value}</span><span style="color:var(--dim);font-size:11px;display:block;margin-top:2px">${s.label}</span></div>`).join('');
+  document.getElementById('overlay-perfil').classList.add('show');
+}
+function closePerfil(){document.getElementById('overlay-perfil').classList.remove('show')}
+
+// ═══════════ RANKING ═══════════
+const MEDALS=['🥇','🥈','🥉'];
+
+function openPerfilRanking(u, posicao){
+  const n=calcNivel(u.acertos||0);
+  const a=u.acertos||0, e=u.erros||0;
+  const total=todasPerguntas.length||1;
+  const pct=Math.min(100,Math.round(((a+e)/total)*100));
+  document.getElementById('rk-posicao-medal').textContent=MEDALS[posicao]||(posicao+1)+'º';
+  document.getElementById('rk-nome').textContent=u.nome||'—';
+  document.getElementById('rk-user').textContent='@'+(u.username||'—');
+  document.getElementById('rk-nivel-badge').textContent='🏅 Nível '+n+' — '+NIVEL_NOMES[n];
+  document.getElementById('rk-stats').innerHTML=[
+    {label:'Acertos',value:a,color:'#00C853',icon:'✅'},
+    {label:'Erros',value:e,color:'#D50000',icon:'❌'},
+    {label:'Nível '+n,value:NIVEL_NOMES[n],color:'#D4AF37',icon:'🏅'},
+  ].map(s=>`<div class="stat-card" style="border-color:${s.color}33"><span style="font-size:18px;display:block;margin-bottom:4px">${s.icon}</span><span style="font-family:'Cinzel',serif;font-weight:700;font-size:13px;display:block;color:${s.color}">${s.value}</span><span style="color:var(--dim);font-size:11px;display:block;margin-top:2px">${s.label}</span></div>`).join('');
+  document.getElementById('popup-perfil-ranking').classList.add('show');
+}
+
+function carregarRanking(){
+  document.getElementById('ranking-list').innerHTML='<div class="loading-inline">Carregando ranking…</div>';
+  if(rankingUnsub)rankingUnsub();
+  const rankRef=db.ref('users').orderByChild('acertos').limitToLast(10);
+  rankRef.on('value',snap=>{
+    if(!snap.exists()){document.getElementById('ranking-list').innerHTML='<div class="center-empty"><p>Nenhum jogador ainda!</p></div>';return;}
+    const arr=Object.values(snap.val()).sort((a,b)=>(b.acertos||0)-(a.acertos||0)).slice(0,10);
+    document.getElementById('ranking-list').innerHTML=arr.map((u,i)=>{
+      const n=calcNivel(u.acertos||0);
+      return`<div class="rank-item" onclick="openPerfilRanking(rankingCache[${i}],${i})" style="background:${i<3?'rgba(212,175,55,.06)':'#1E1A12'};border-color:${i<3?'rgba(212,175,55,.3)':'#333'};animation-delay:${i*.05}s;cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(212,175,55,.1)'" onmouseout="this.style.background='${i<3?'rgba(212,175,55,.06)':'#1E1A12'}'">
+        <span style="font-size:22px;min-width:32px;text-align:center">${MEDALS[i]||(i+1)+'.'}</span>
+        <div style="flex:1"><p style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:${i<3?'#D4AF37':'#fff'}">${u.nome||'—'}</p><p style="color:var(--muted);font-size:12px;margin-top:2px">@${u.username||'—'} · Nível ${n} — ${NIVEL_NOMES[n]}</p></div>
+        <div style="text-align:right"><span style="font-family:'Cinzel',serif;color:var(--green);font-size:18px;font-weight:700;display:block">${u.acertos||0}</span><span style="color:var(--dim);font-size:11px">acertos</span></div>
+      </div>`;
+    }).join('');
+    window.rankingCache=arr;
+  });
+  rankingUnsub=()=>rankRef.off();
+}
+
+// ═══════════ DRAWER ═══════════
+function openDrawer(){
+  document.getElementById('drawer-overlay').classList.add('show');
+}
+function closeDrawer(){document.getElementById('drawer-overlay').classList.remove('show')}
+
+// ═══════════ UTILS EDIÇÃO ═══════════
+function updateCounter(inputId, counterId, max){
+  const val=document.getElementById(inputId).value.length;
+  document.getElementById(counterId).textContent=val+'/'+max;
+}
+
+let usernameCheckTimer=null;
+function checkUsernameDisponivel(inputId, hintId, countId){
+  const input=document.getElementById(inputId);
+  const hint=document.getElementById(hintId);
+  const raw=input.value.replace('@','').toLowerCase().replace(/[^a-z0-9_]/g,'');
+  input.value=raw; // força só chars válidos
+  if(countId)document.getElementById(countId).textContent=raw.length+'/10';
+  hint.textContent='';
+  input.classList.remove('invalid','valid');
+  if(raw.length<3){hint.style.color='var(--muted)';hint.textContent=raw.length>0?'Mínimo 3 caracteres':'';return;}
+  hint.style.color='var(--muted)';hint.textContent='Verificando…';
+  clearTimeout(usernameCheckTimer);
+  usernameCheckTimer=setTimeout(async()=>{
+    const snap=await db.ref('users').orderByChild('username').equalTo(raw).get();
+    const currentUser=auth.currentUser;
+    let ocupado=false;
+    if(snap.exists()){
+      const entries=Object.entries(snap.val());
+      // Não conta o próprio usuário logado
+      ocupado=entries.some(([uid])=>uid!==currentUser?.uid);
+    }
+    if(ocupado){
+      input.classList.add('invalid');
+      hint.style.color='var(--red-soft)';
+      hint.textContent='❌ @'+raw+' já está em uso';
+    } else {
+      input.classList.add('valid');
+      hint.style.color='var(--green)';
+      hint.textContent='✅ @'+raw+' disponível';
+    }
+  },600);
+}
+
+// ═══════════ EDIT PERFIL ═══════════
+function openEditPerfil(){
+  if(!userData)return;
+  const uid=auth.currentUser?.uid;
+  // Verifica se pode trocar @ (15 dias)
+  const lastChange=userData.usernameChangedAt||0;
+  const agora=Date.now();
+  const diasRestantes=Math.ceil((lastChange+15*24*60*60*1000-agora)/(24*60*60*1000));
+  const podeAlterarUsername=agora>lastChange+15*24*60*60*1000;
+
+  const blockedEl=document.getElementById('edit-user-blocked');
+  const usernameInput=document.getElementById('edit-username');
+  if(!podeAlterarUsername&&lastChange>0){
+    blockedEl.style.display='block';
+    blockedEl.textContent='⏳ Você poderá trocar o @ em '+diasRestantes+' dia(s).';
+    usernameInput.disabled=true;
+    usernameInput.style.opacity='.5';
+  } else {
+    blockedEl.style.display='none';
+    usernameInput.disabled=false;
+    usernameInput.style.opacity='1';
+  }
+
+  const nomeInput=document.getElementById('edit-nome');
+  nomeInput.value=userData.nome||'';
+  usernameInput.value=userData.username||'';
+  document.getElementById('edit-nome-count').textContent=(userData.nome||'').length+'/20';
+  document.getElementById('edit-user-count').textContent=(userData.username||'').length+'/10';
+  document.getElementById('edit-user-hint').textContent='';
+  usernameInput.classList.remove('invalid','valid');
+  document.getElementById('edit-error').classList.remove('show');
+
+  document.getElementById('popup-editar').classList.add('show');
+}
+function closeEditPerfil(){document.getElementById('popup-editar').classList.remove('show')}
+
+// ═══════════ EVENT LISTENERS ═══════════
+
+// Login
+document.getElementById('btn-entrar').addEventListener('click',async()=>{
+  clearErr('login-error');
+  const email=document.getElementById('login-email').value.trim();
+  const senha=document.getElementById('login-senha').value;
+  if(!email||!senha){showErr('login-error','Preencha e-mail e senha.');return;}
+  setBtn('btn-entrar','Entrando…',true);
+  try{await auth.signInWithEmailAndPassword(email,senha);}
+  catch(e){showErr('login-error','E-mail ou senha incorretos.');setBtn('btn-entrar','⚔️  ENTRAR',false);}
+});
+document.getElementById('login-senha').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-entrar').click()});
+document.getElementById('btn-ir-cadastro').addEventListener('click',()=>{clearErr('login-error');showScreen('cadastro')});
+
+// Cadastro
+document.getElementById('btn-cadastrar').addEventListener('click',async()=>{
+  clearErr('cad-error');
+  const nome=document.getElementById('cad-nome').value.trim();
+  const username=document.getElementById('cad-user').value.trim().replace('@','').toLowerCase();
+  const email=document.getElementById('cad-email').value.trim();
+  const senha=document.getElementById('cad-senha').value;
+  const confirm=document.getElementById('cad-confirm').value;
+  if(!nome||!username||!email||!senha){showErr('cad-error','Preencha todos os campos.');return;}
+  if(nome.length>20){showErr('cad-error','Nome máximo 20 caracteres.');return;}
+  if(username.length<3||username.length>10){showErr('cad-error','@ usuário: entre 3 e 10 caracteres.');return;}
+  if(senha!==confirm){showErr('cad-error','As senhas não coincidem.');return;}
+  if(senha.length<6){showErr('cad-error','Senha mínimo 6 caracteres.');return;}
+  // Verifica @ disponível
+  const snapU=await db.ref('users').orderByChild('username').equalTo(username).get();
+  if(snapU.exists()){showErr('cad-error','Este @ já está em uso. Escolha outro.');return;}
+  setBtn('btn-cadastrar','Criando conta…',true);
+  try{
+    const cred=await auth.createUserWithEmailAndPassword(email,senha);
+    await db.ref('users/'+cred.user.uid).set({nome,username,email,acertos:0,erros:0,nivel:1,usernameChangedAt:0});
+  }catch(e){
+    showErr('cad-error',e.code==='auth/email-already-in-use'?'E-mail já cadastrado.':'Erro ao criar conta.');
+    setBtn('btn-cadastrar','🙏 CADASTRAR',false);
+  }
+});
+document.getElementById('btn-ir-login').addEventListener('click',()=>{clearErr('cad-error');showScreen('login')});
+
+// Home
+document.getElementById('btn-avatar').addEventListener('click',openPerfil);
+document.getElementById('btn-perfil-close').addEventListener('click',closePerfil);
+document.getElementById('overlay-perfil').addEventListener('click',e=>{if(e.target===document.getElementById('overlay-perfil'))closePerfil()});
+document.getElementById('btn-edit-perfil').addEventListener('click',openEditPerfil);
+document.getElementById('btn-jogar').addEventListener('click',abrirSelecao);
+document.getElementById('btn-ranking').addEventListener('click',()=>{showScreen('ranking');carregarRanking()});
+document.getElementById('btn-sobre').addEventListener('click',()=>showScreen('sobre'));
+document.getElementById('btn-privacidade').addEventListener('click',()=>showScreen('privacidade'));
+
+// Editar perfil
+document.getElementById('btn-edit-cancel').addEventListener('click',closeEditPerfil);
+document.getElementById('popup-editar').addEventListener('click',e=>{if(e.target===document.getElementById('popup-editar'))closeEditPerfil()});
+document.getElementById('btn-edit-save').addEventListener('click',async()=>{
+  const uid=auth.currentUser?.uid;
+  if(!uid)return;
+  const novoNome=document.getElementById('edit-nome').value.trim();
+  const novoUsername=document.getElementById('edit-username').value.trim().toLowerCase();
+  const hint=document.getElementById('edit-user-hint');
+  if(!novoNome){showErr('edit-error','O nome não pode estar vazio.');return;}
+  if(novoNome.length>20){showErr('edit-error','Nome máximo 20 caracteres.');return;}
+  if(novoUsername.length<3){showErr('edit-error','@ usuário mínimo 3 caracteres.');return;}
+  // Verifica se @ está disponível (exceto o próprio)
+  if(novoUsername!==userData.username){
+    const snapU=await db.ref('users').orderByChild('username').equalTo(novoUsername).get();
+    if(snapU.exists()&&!Object.keys(snapU.val()).includes(uid)){
+      showErr('edit-error','Este @ já está em uso.');return;
+    }
+    // Verifica prazo 15 dias
+    const agora=Date.now();
+    const last=userData.usernameChangedAt||0;
+    if(agora<last+15*24*60*60*1000){
+      const dias=Math.ceil((last+15*24*60*60*1000-agora)/(24*60*60*1000));
+      showErr('edit-error','Você só pode trocar o @ em '+dias+' dia(s).');return;
+    }
+  }
+  setBtn('btn-edit-save','Salvando…',true);
+  try{
+    const updates={nome:novoNome,username:novoUsername};
+    if(novoUsername!==userData.username)updates.usernameChangedAt=Date.now();
+    await db.ref('users/'+uid).update(updates);
+    userData={...userData,...updates};
+    updateHomeUI();
+    closeEditPerfil();
+  }catch(e){showErr('edit-error','Erro ao salvar. Tente novamente.');}
+  setBtn('btn-edit-save','Salvar',false);
+});
+
+// Seleção
+document.getElementById('btn-sel-back').addEventListener('click',()=>showScreen('home'));
+document.getElementById('btn-iniciar-jogo').addEventListener('click',iniciarJogo);
+
+// Jogo
+document.getElementById('btn-proxima').addEventListener('click',proximaPergunta);
+document.getElementById('btn-popup-proxima').addEventListener('click',proximaPergunta);
+document.getElementById('btn-jogo-sair').addEventListener('click',()=>{
+  pararTimer();
+  document.getElementById('popup-resultado').classList.remove('show');
+  document.getElementById('popup-gameover').classList.remove('show');
+  showScreen('home');updateHomeUI();
+});
+
+// Game Over
+document.getElementById('btn-go-jogar-novo').addEventListener('click',()=>{
+  document.getElementById('popup-gameover').classList.remove('show');
+  abrirSelecao();
+});
+document.getElementById('btn-go-home').addEventListener('click',()=>{
+  document.getElementById('popup-gameover').classList.remove('show');
+  showScreen('home');updateHomeUI();
+});
+
+// Ranking
+document.getElementById('btn-ranking-back').addEventListener('click',()=>{
+  if(rankingUnsub){rankingUnsub();rankingUnsub=null;}
+  showScreen('home');
+});
+document.getElementById('btn-rk-perfil-close').addEventListener('click',()=>document.getElementById('popup-perfil-ranking').classList.remove('show'));
+document.getElementById('popup-perfil-ranking').addEventListener('click',e=>{if(e.target===document.getElementById('popup-perfil-ranking'))document.getElementById('popup-perfil-ranking').classList.remove('show')});
+
+// Sobre / Privacidade
+document.getElementById('btn-sobre-back').addEventListener('click',()=>showScreen('home'));
+document.getElementById('btn-priv-back').addEventListener('click',()=>showScreen('home'));
+
+// Drawer
+document.getElementById('btn-open-drawer').addEventListener('click',openDrawer);
+document.getElementById('drawer-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('drawer-overlay'))closeDrawer()});
+document.getElementById('drawer-jogar').addEventListener('click',()=>{closeDrawer();abrirSelecao()});
+document.getElementById('drawer-ranking').addEventListener('click',()=>{closeDrawer();showScreen('ranking');carregarRanking()});
+document.getElementById('drawer-sobre').addEventListener('click',()=>{closeDrawer();showScreen('sobre')});
+document.getElementById('drawer-privacidade').addEventListener('click',()=>{closeDrawer();showScreen('privacidade')});
+document.getElementById('drawer-logout').addEventListener('click',async()=>{
+  closeDrawer();
+  db.ref('users/'+auth.currentUser?.uid).off();
+  await auth.signOut();
+});
+</script>
+</body>
+</html>
